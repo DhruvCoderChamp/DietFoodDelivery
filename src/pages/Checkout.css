@@ -1,0 +1,145 @@
+
+.checkout-page { min-height: 80vh; }
+.checkout-header {
+  background: linear-gradient(135deg, var(--green-dark), var(--green-main));
+  padding: 32px 0 28px;
+}
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.step {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+.step.done { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); }
+.step.active { color: #fff; background: rgba(255,255,255,0.2); }
+.checkout-title { font-size: clamp(22px, 3vw, 34px); font-weight: 800; color: #fff; }
+.checkout-content { padding: 32px 0 60px; }
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+.checkout-form { display: flex; flex-direction: column; gap: 4px; }
+.form-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 0 4px;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.input-error { border-color: var(--red-accent) !important; }
+.error-msg { display: block; font-size: 12px; color: var(--red-accent); margin-top: 4px; font-weight: 500; }
+
+/* GPS Card */
+.gps-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--green-soft);
+  border: 1.5px solid var(--green-light);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 8px;
+}
+.gps-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--green-pale);
+  color: var(--green-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.gps-card-title { font-weight: 700; font-size: 14px; color: var(--text-dark); }
+.gps-card-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.gps-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: var(--green-main);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: auto;
+  white-space: nowrap;
+}
+.gps-btn:hover { background: var(--green-dark); }
+.gps-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* ETA Card */
+.eta-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #fff8e8, #fef9f3);
+  border: 1.5px solid #f0d89e;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-top: 8px;
+}
+.eta-icon { color: #e67e22; flex-shrink: 0; }
+.eta-title { font-size: 12px; font-weight: 700; color: #7f6300; text-transform: uppercase; letter-spacing: 0.5px; }
+.eta-time { font-size: 18px; font-weight: 800; color: #5a4600; margin-top: 2px; }
+.eta-sub { font-size: 12px; color: #9a7800; margin-top: 4px; }
+
+/* Order Preview */
+.order-preview {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  position: sticky;
+  top: 88px;
+}
+.preview-title { font-size: 17px; font-weight: 800; color: var(--text-dark); margin-bottom: 20px; }
+.preview-items { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.preview-item { display: flex; align-items: center; gap: 12px; }
+.preview-item-img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.preview-item-info { flex: 1; min-width: 0; }
+.preview-item-name { display: block; font-size: 13px; font-weight: 600; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preview-item-qty { font-size: 12px; color: var(--text-muted); }
+.preview-item-price { font-size: 14px; font-weight: 700; color: var(--green-main); flex-shrink: 0; }
+.preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-mid);
+  padding: 4px 0;
+}
+.preview-total {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  padding-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .order-preview { position: static; order: -1; }
+}
+@media (max-width: 600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .gps-card { flex-wrap: wrap; }
+  .gps-btn { width: 100%; justify-content: center; }
+}
