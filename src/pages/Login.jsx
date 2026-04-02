@@ -1,71 +1,149 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Shield, Eye, EyeOff, ArrowRight, Smartphone, CheckCircle, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { auth, googleProvider } from '../firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { auth } from '../firebase';
+import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import './Login.css';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user: currentUser } = useAuth();
   const navigate = useNavigate();
 
+  const [step, setStep] = useState('phone'); // phone | otp | details
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState(new Array(6).fill(''));
+  const [name, setName] = useState('');
+  
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
 
-  // Admin login flag
+  // Admin login flags
   const [adminMode, setAdminMode] = useState(false);
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPass, setAdminPass] = useState('');
   const [showPass, setShowPass] = useState(false);
 
+  useEffect(() => {
+    if (currentUser) navigate('/');
+  }, [currentUser, navigate]);
+
+  const handleSendOTP = async () => {
+    if (phone.length !== 10) { setError('Please enter a valid 10-digit number'); return; }
+    setError('');
+    setName(''); 
+    setLoading(true);
+
+    try {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
+      
+      const appVerifier = new RecaptchaVerifier(auth, 'send-otp-btn', {
+        size: 'invisible',
+        callback: () => {}
+      });
+      window.recaptchaVerifier = appVerifier;
+
+      const result = await signInWithPhoneNumber(auth, '+91' + phone, appVerifier);
+      setConfirmationResult(result);
+      setStep('otp');
+      setLoading(false);
+    } catch(err) {
+      console.error(err);
+      setError('Failed to send OTP. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const enteredOtp = otp.join('');
+    if (enteredOtp.length !== 6) { setError('Enter full 6-digit OTP'); return; }
+    setError('');
+    setLoading(true);
+    
+    try {
+      await confirmationResult.confirm(enteredOtp);
+
+      // Normal phone login flow
+      const res = await fetch('/api/auth/phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, name: name || undefined })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // If user already has a name, update local state and login
+        if (data.user.name && data.user.name !== 'Dear Customer' && data.user.name.length > 0) {
+          setName(data.user.name);
+          login(data);
+          navigate('/');
+        } else {
+          // If name is missing or default, ask for it
+          setStep('details');
+          setLoading(false);
+        }
+      } else {
+        setError('Verification failed on our servers.');
+        setLoading(false);
+      }
+    } catch(err) {
+      console.error(err);
+      setError('Invalid OTP code. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteRegistration = async () => {
+    if (!name.trim()) { setError('Please enter your name'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, name })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        login(data);
+        navigate('/');
+      } else {
+        setError('Failed to update details.');
+      }
+      setLoading(false);
+    } catch(err) {
+      setError('Server connection error.');
+      setLoading(false);
+    }
+  };
+
   const handleAdminLogin = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: adminEmail, password: adminPass })
       });
       if (res.ok) {
-        login({ name: 'Admin', role: 'admin' });
+        const data = await res.json();
+        login(data);
         navigate('/admin');
       } else { setError('Invalid admin credentials'); }
     } catch (err) { setError('Failed to connect to server'); }
   };
 
-  const handleGoogleLogin = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const u = result.user;
-      
-      const res = await fetch('http://localhost:8080/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: u.email, name: u.displayName })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        login({ name: data.user.name, email: data.user.email, role: data.user.role });
-        alert('Login successful! Welcome.');
-        setLoading(false);
-        navigate('/');
-      } else {
-        setError('Failed to authenticate with backend.');
-        setLoading(false);
-      }
-    } catch (err) { 
-      console.error('Google Sign-In Error:', err); 
-      if (err.message && err.message.toLowerCase().includes('fetch')) {
-        setError('Cannot connect to Spring Boot API. Turn on Backend.');
-      } else {
-        setError('Google Sign-In was cancelled or failed.');
-      }
-      setLoading(false);
-    }
+  const handleOtpChange = (element, index) => {
+    if (isNaN(element)) return;
+    const newOtp = [...otp];
+    newOtp[index] = element;
+    setOtp(newOtp);
+    if (element && index < 5) document.getElementById(`otp-${index + 1}`).focus();
+    if (!element && index > 0) document.getElementById(`otp-${index - 1}`).focus();
   };
 
   return (
@@ -74,67 +152,109 @@ export default function Login() {
         <div className="login-blob lb1"></div>
         <div className="login-blob lb2"></div>
       </div>
-      <div className="login-container">
-        {/* Left */}
+      
+      <div className="login-container unified-auth">
         <div className="login-left">
           <div className="login-brand">
-            <div style={{ fontSize: 48 }}>🥗</div>
+            <div className="brand-logo-circle">🥗</div>
             <h1 className="login-brand-name">My Morning</h1>
-            <p className="login-brand-tag">A Healthy Start</p>
+            <p className="login-brand-tag">Fresh Smarter Start</p>
           </div>
           <div className="login-benefits">
-            <div className="login-benefit">✓ Handcrafted High-Protein Meals</div>
-            <div className="login-benefit">✓ Calorie-Tracked Menus</div>
-            <div className="login-benefit">✓ Same-Morning Fresh Delivery</div>
+            <div className="login-benefit"><CheckCircle size={14} /> Protein-Rich Wellness Bowls</div>
+            <div className="login-benefit"><CheckCircle size={14} /> Real-Time Calorie Tracking</div>
+            <div className="login-benefit"><CheckCircle size={14} /> Same-Morning Fresh Delivery</div>
           </div>
-          <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800" alt="Healthy Food" className="login-img" />
+          <div className="login-visual">
+            <img src="https://images.unsplash.com/photo-1543362906-acfc16c67564?w=800" alt="Healthy Breakfast" className="login-img" />
+          </div>
         </div>
 
-        {/* Right */}
         <div className="login-right">
-          <div className="login-brand-mobile">
-            <div style={{ fontSize: 36 }}>🥗</div>
-            <h1 className="login-brand-name" style={{ color: 'var(--text-dark)', fontSize: 24 }}>My Morning</h1>
-          </div>
+          <div className="login-form-wrapper">
+            <div className="form-header">
+              <h2 className="login-form-title">
+                {adminMode ? 'Admin Portal' : 'Welcome to My Morning'}
+              </h2>
+              <p className="login-form-sub">
+                {adminMode ? 'Secure terminal access.' : 'Start your healthy mornings'}
+              </p>
+            </div>
 
-          <div className="login-form" style={{ marginTop: '20px' }}>
-            <h2 className="login-form-title">{adminMode ? 'Admin Portal' : 'Welcome'}</h2>
-            <p className="login-form-sub">{adminMode ? 'Secure access for My Morning staff.' : 'Sign in securely with Google to grab our daily fresh meals.'}</p>
-            {error && <span className="error-msg" style={{ textAlign: 'center', marginBottom: 10 }}>{error}</span>}
-
-            {!adminMode ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', marginTop: 30 }}>
-                <div className="google-btn" style={{ padding: '16px 24px', fontSize: '15px', width: '100%', maxWidth: '300px' }} onClick={handleGoogleLogin}>
-                  {loading ? (
-                    <div className="spinner" style={{ width: 20, height: 20, borderTopColor: '#333' }}></div>
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 7 29.5 5 24 5 12.9 5 4 13.9 4 25s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.9C14.7 15.1 19 12 24 12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 7 29.5 5 24 5 16.3 5 9.7 9 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.3C29.5 36.3 26.9 37 24 37c-5.3 0-9.7-2.9-11.3-7.1l-6.6 5.1C9.7 41 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.7 2.1-2.1 3.9-3.8 5.2l6.2 5.3C43.1 34.8 44 28.5 44 25c0-1.2-.1-2.4-.4-3.5z"/></svg>
-                      Continue with Google
-                    </>
-                  )}
-                </div>
-                <button className="admin-link" style={{ marginTop: '20px' }} onClick={() => setAdminMode(true)}>
-                  <Shield size={14} /> Switch to Admin Login
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginTop: 20 }}>
+            {adminMode ? (
+              <div className="admin-login-fields animated-fade-in">
                 <div className="phone-input-wrap">
-                  <input type="email" placeholder="Admin Email" className="phone-input" style={{ width: '100%', padding: '14px' }} value={adminEmail} onChange={e => setAdminEmail(e.target.value)} />
+                  <input type="email" placeholder="Admin Email" className="phone-input" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} />
                 </div>
-                <div className="phone-input-wrap" style={{ display: 'flex' }}>
-                  <input type={showPass ? 'text' : 'password'} placeholder="Password" className="phone-input" style={{ width: '100%', padding: '14px' }} value={adminPass} onChange={e => setAdminPass(e.target.value)} />
-                  <button className="btn-ghost" style={{ padding: '0 15px' }} onClick={() => setShowPass(!showPass)}>
+                <div className="phone-input-wrap">
+                  <input type={showPass ? 'text' : 'password'} placeholder="Password" className="phone-input" value={adminPass} onChange={e => setAdminPass(e.target.value)} />
+                  <button className="btn-toggle-pass" onClick={() => setShowPass(!showPass)}>
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '14px' }} onClick={handleAdminLogin}>
-                  Access Server
-                </button>
-                <button className="admin-link" onClick={() => setAdminMode(false)}>← Back to User Login</button>
+                <button className="btn-primary auth-submit" onClick={handleAdminLogin}>Access Server</button>
+                <button className="btn-text-link" onClick={() => setAdminMode(false)}>← Back to User Login</button>
+              </div>
+            ) : (
+              <div className="user-auth-fields animated-fade-in">
+                {step === 'phone' && (
+                  <div className="step-phone">
+                    <div className="phone-input-wrap">
+                      <div className="phone-prefix">+91</div>
+                      <input type="tel" maxLength="10" placeholder="Mobile number" className="phone-input" value={phone} onChange={e => { setPhone(e.target.value.replace(/\D/g, '')); setError(''); }} />
+                    </div>
+                    
+                    <div className="auth-consent-wrap">
+                      <label className="auth-consent-label">
+                        <input type="checkbox" required className="auth-checkbox" defaultChecked />
+                        <span>I agree to the <Link to="/terms" target="_blank">Terms</Link> & <Link to="/privacy" target="_blank">Privacy Policy</Link></span>
+                      </label>
+                    </div>
+
+                    <button id="send-otp-btn" className="btn-primary auth-submit" onClick={handleSendOTP} disabled={loading}>
+                      {loading ? <div className="spinner-small" /> : <>Continue with Phone <Smartphone size={16} /></>}
+                    </button>
+                  </div>
+                )}
+
+                {step === 'otp' && (
+                  <div className="step-otp">
+                    <p className="otp-guide">Enter 6-digit code sent to +91 {phone}</p>
+                    <div className="otp-digit-group">
+                      {otp.map((digit, i) => (
+                        <input key={i} id={`otp-${i}`} type="text" maxLength="1" className="otp-digit-box" value={digit} onChange={e => handleOtpChange(e.target.value.slice(-1), i)} />
+                      ))}
+                    </div>
+                    <button className="btn-primary auth-submit" onClick={handleVerifyOTP} disabled={loading}>
+                       {loading ? <div className="spinner-small" /> : <>Verify & Continue <ArrowRight size={16} /></>}
+                    </button>
+                    <button className="btn-text-link" onClick={() => setStep('phone')}>Edit Number</button>
+                  </div>
+                )}
+
+                {step === 'details' && (
+                  <div className="step-details">
+                    <div className="phone-input-wrap">
+                      <input type="text" placeholder="Your Full Name" className="phone-input" value={name} onChange={e => setName(e.target.value)} />
+                    </div>
+                    <button className="btn-primary auth-submit" onClick={handleCompleteRegistration} disabled={loading}>
+                      {loading ? <div className="spinner-small" /> : <>Start Eating Healthy <UserCheck size={16} /></>}
+                    </button>
+                  </div>
+                )}
+
+                {error && <div className="auth-error-alert">{error}</div>}
               </div>
             )}
+            
+            <div className="auth-footer">
+               {!adminMode && step === 'phone' && (
+                  <button className="admin-access-btn" onClick={() => setAdminMode(true)}>
+                    <Shield size={12} /> Staff Access
+                  </button>
+               )}
+               <p className="legal-note">By continuing, you agree to our <span>Terms</span> & <span>Privacy Policy</span></p>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { ShoppingCart, Menu, X, User, LogOut, ChevronDown, Shield } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut, ChevronDown, Shield, Calendar } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
@@ -67,11 +67,18 @@ export default function Navbar() {
                     <span className="dropdown-phone">{user.phone}</span>
                   </div>
                   <div className="divider" style={{ margin: '8px 0' }}></div>
+                  <Link to="/orders" className="dropdown-item" onClick={() => setUserDropOpen(false)}>
+                    <ShoppingCart size={14} /> My Orders
+                  </Link>
+                  <Link to="/subscription" className="dropdown-item" onClick={() => setUserDropOpen(false)}>
+                    <Calendar size={14} /> My Plan
+                  </Link>
                   {isAdmin && (
                     <Link to="/admin" className="dropdown-item" onClick={() => setUserDropOpen(false)}>
                       <Shield size={14} /> Admin Panel
                     </Link>
                   )}
+                  <div className="divider" style={{ margin: '8px 0' }}></div>
                   <button className="dropdown-item danger" onClick={handleLogout}>
                     <LogOut size={14} /> Sign Out
                   </button>
@@ -96,6 +103,7 @@ export default function Navbar() {
         <div className="mobile-menu">
           <Link to="/" className="mobile-link" onClick={() => setMenuOpen(false)}>🏠 Home</Link>
           <Link to="/menu" className="mobile-link" onClick={() => setMenuOpen(false)}>🍱 Menu</Link>
+          <Link to="/orders" className="mobile-link" onClick={() => setMenuOpen(false)}>📜 My Orders</Link>
           <Link to="/cart" className="mobile-link" onClick={() => setMenuOpen(false)}>🛒 Cart {totalItems > 0 && `(${totalItems})`}</Link>
           <Link to="/subscription" className="mobile-link" onClick={() => setMenuOpen(false)}>📅 Subscribe</Link>
           {isAdmin && <Link to="/admin" className="mobile-link" onClick={() => setMenuOpen(false)}>🔐 Admin</Link>}

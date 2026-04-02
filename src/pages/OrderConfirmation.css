@@ -149,6 +149,74 @@
 }
 .help-link:hover { color: var(--green-main); }
 
+/* Live Status Banner */
+.live-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  background: rgba(155, 89, 182, 0.08);
+  border: 1.5px solid rgba(155, 89, 182, 0.2);
+}
+.live-status-banner[data-status="Confirmed"] { background: rgba(155, 89, 182, 0.08); border-color: rgba(155, 89, 182, 0.2); }
+.live-status-banner[data-status="Preparing"] { background: rgba(52, 152, 219, 0.08); border-color: rgba(52, 152, 219, 0.2); }
+.live-status-banner[data-status="Out for Delivery"] { background: rgba(230, 126, 34, 0.08); border-color: rgba(230, 126, 34, 0.2); }
+.live-status-banner[data-status="Delivered"] { background: rgba(39, 174, 96, 0.08); border-color: rgba(39, 174, 96, 0.2); }
+
+.live-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #9b59b6;
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+.live-status-banner[data-status="Confirmed"] .live-dot { background: #9b59b6; }
+.live-status-banner[data-status="Preparing"] .live-dot { background: #3498db; }
+.live-status-banner[data-status="Out for Delivery"] .live-dot { background: #e67e22; }
+.live-status-banner[data-status="Delivered"] .live-dot { background: #27ae60; animation: none; }
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.live-status-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-dark);
+  flex: 1;
+}
+.live-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Active step pulse */
+.pulse-icon {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+@keyframes iconPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45,106,31,0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(45,106,31,0); }
+}
+
+.tracker-step.active .tracker-label {
+  color: var(--green-main);
+  font-weight: 800;
+}
+
+/* Status pill dynamic colors */
+.status-pill[data-status="Confirmed"] { background: rgba(155, 89, 182, 0.1); color: #9b59b6; border-color: rgba(155, 89, 182, 0.3); }
+.status-pill[data-status="Preparing"] { background: rgba(52, 152, 219, 0.1); color: #3498db; border-color: rgba(52, 152, 219, 0.3); }
+.status-pill[data-status="Out for Delivery"] { background: rgba(230, 126, 34, 0.1); color: #e67e22; border-color: rgba(230, 126, 34, 0.3); }
+.status-pill[data-status="Delivered"] { background: rgba(39, 174, 96, 0.1); color: #27ae60; border-color: rgba(39, 174, 96, 0.3); }
+
+/* Spin animation for refresh */
+.spin-icon { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 @media (max-width: 900px) {
   .confirmation-grid { grid-template-columns: 1fr; }
   .confirmation-side { order: -1; }

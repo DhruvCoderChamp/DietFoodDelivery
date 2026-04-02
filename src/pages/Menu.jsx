@@ -1,7 +1,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, ShoppingCart, Star, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { menuItems, categories } from '../data/menuData';
 import './Menu.css';
 
@@ -9,6 +11,8 @@ const TAGS = ['All', 'High Protein', 'Low Carb', 'Veg', 'Non-Veg'];
 
 export default function Menu() {
   const { addItem, items } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [dbItems, setDbItems] = useState([]);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -16,7 +20,7 @@ export default function Menu() {
   const [addedId, setAddedId] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => setDbItems(data.filter(i => i.isAvailable))) // Only show available items on user menu
       .catch(err => console.error(err));
@@ -41,9 +45,13 @@ export default function Menu() {
     }
     if (search.trim()) list = list.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
     return list;
-  }, [activeCategory, activeTags, search]);
+  }, [activeCategory, activeTags, search, dbItems]);
 
   const handleAdd = (item) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     addItem(item);
     setAddedId(item.id);
     setTimeout(() => setAddedId(null), 1200);
@@ -136,7 +144,7 @@ export default function Menu() {
                   </div>
                   <div className="menu-card-body">
                     <div className="menu-card-top">
-                      <span className={`veg-dot ${item.tags.includes('non-veg') ? 'non-veg' : 'veg'}`}></span>
+                      <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
                       <div className="menu-rating">
                         <Star size={12} fill="#f39c12" stroke="#f39c12" />
                         <span>{item.rating}</span>

@@ -2,10 +2,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingBag, ArrowRight, ShoppingCart, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import './Cart.css';
 
 export default function Cart() {
   const { items, totalItems, totalPrice, updateQty, removeItem, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   if (items.length === 0) {
@@ -107,32 +109,8 @@ export default function Cart() {
               </div>
             </div>
 
-            <button className="btn-primary checkout-btn" onClick={async () => {
-              // 1. Save order to Backend DB
-              try {
-                await fetch('http://localhost:8080/api/orders', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    customerName: 'WhatsApp Customer',
-                    phone: 'Unknown',
-                    address: 'TBD in WhatsApp',
-                    items: items.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, price: i.price })),
-                    totalAmount: finalTotal,
-                    timeSlot: 'Morning',
-                    status: 'Confirmed'
-                  })
-                });
-              } catch (err) { console.error('Failed to save order to DB', err); }
-
-              // 2. Redirect to WhatsApp
-              const text = `Hello My Morning!\nI would like to place an order:%0a%0a` + 
-                items.map(i => `${i.quantity}x ${i.name} (₹${i.price * i.quantity})`).join('%0a') +
-                `%0a%0a*Subtotal:* ₹${totalPrice}%0a*Delivery Fee:* ${deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}%0a*Total:* ₹${finalTotal}%0a%0aPlease let me know the estimated delivery time and payment details!`;
-              window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
-              clearCart();
-            }}>
-              Order via WhatsApp <ArrowRight size={18} />
+            <button className="btn-primary checkout-btn" onClick={() => navigate('/checkout')}>
+              {user ? 'Proceed to Checkout' : 'Login to Checkout'} <ArrowRight size={18} />
             </button>
             <Link to="/menu" className="continue-link">
               <ShoppingCart size={14} /> Continue Shopping

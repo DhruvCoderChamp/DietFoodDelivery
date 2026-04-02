@@ -1,6 +1,7 @@
 
 package com.mymorning.controller;
 
+import com.mymorning.config.JwtUtils;
 import com.mymorning.model.User;
 import com.mymorning.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,62 +9,112 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
+    private static final String ADMIN_CHECK_EMAIL = "mymorningblr@gmail.com";
+    private static final String ADMIN_CHECK_PASS = "admin123";
+
+    /**
+     * Admin login using credentials.
+     * Note: In production, consider moving admin users to the database 
+     * or using an external identity provider.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> adminLogin(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
         String password = credentials.get("password");
 
-        // Secure Admin validation
-        if ("admin@mymorning.in".equals(email) && "admin123".equals(password)) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", "admin_mock_token_123");
-            response.put("role", "admin");
+        if (ADMIN_CHECK_EMAIL.equals(email) && ADMIN_CHECK_PASS.equals(password)) {
+            // Mock Admin User for token generation
+            User admin = User.builder()
+                    .phone("ADMIN_SECURE")
+                    .name("Admin")
+                    .role("admin")
+                    .id(0L)
+                    .build();
+
+            String token = jwtUtils.generateToken(email, "admin", 0L);
             
-            Map<String, String> user = new HashMap<>();
-            user.put("name", "Admin");
-            user.put("email", email);
-            response.put("user", user);
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", "admin");
+            response.put("user", admin);
 
             return ResponseEntity.ok(response);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid admin credentials"));
     }
 
-    @PostMapping("/google")
-    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> payload) {
-        String email = payload.get("email");
+    /**
+     * Unified phone number authentication.
+     * Handles both login and registration via OTP verified on the frontend (Firebase).
+     */
+    @PostMapping("/phone")
+    public ResponseEntity<?> phoneLogin(@RequestBody Map<String, String> payload) {
+        String phone = payload.get("phone");
         String name = payload.get("name");
 
-        if (email == null || email.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Valid Google Email is required"));
+        if (phone == null || phone.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number is required"));
         }
 
-        // Automatic Login or Registration via Single/SSO Config
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) {
-            user = new User();
-            user.setEmail(email);
-            user.setName(name != null ? name : "Google User");
-            user.setRole("user");
-            userRepository.save(user);
-        }
+        User user = userRepository.findFirstByPhone(phone).orElseGet(() -> {
+            // Create new user if not exists
+            return User.builder()
+                    .phone(phone)
+                    .name(name != null && !name.isBlank() ? name : "Dear Customer")
+                    .role("user")
+                    .build();
+        });
 
+        // Update name if it was a default one and a new one is provided
+        if (name != null && !name.isBlank() && isDefaultName(user.getName())) {
+            user.setName(name);
+        }
+        
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
+        return buildAuthResponse(user);
+    }
+
+    /**
+     * Get details of the currently authenticated user session.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe(@RequestHeader(value="Authorization", required=false) String token) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+        }
+        // In production, validate JWT and fetch user from DB
+        return ResponseEntity.ok(Map.of("message", "Session active"));
+    }
+
+    private boolean isDefaultName(String name) {
+        return name == null || name.isBlank() || "Dear Customer".equals(name);
+    }
+
+    private ResponseEntity<?> buildAuthResponse(User user) {
+        String token = jwtUtils.generateToken(user.getPhone(), user.getRole(), user.getId());
+        
         Map<String, Object> response = new HashMap<>();
-        response.put("token", "secure_session_" + user.getId());
+        response.put("token", token);
         response.put("role", user.getRole());
         response.put("user", user);
-
+        
         return ResponseEntity.ok(response);
     }
 }

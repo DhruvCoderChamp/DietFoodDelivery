@@ -2,12 +2,25 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, MapPin, Clock, Zap, Leaf, Shield, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { menuItems, testimonials, deliveryAreas } from '../data/menuData';
+import { useAuth } from '../context/AuthContext';
+import { testimonials, deliveryAreas } from '../data/menuData';
 import './Home.css';
 
 const FeaturedCard = ({ item }) => {
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleAdd = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    addItem(item);
+  };
+
   return (
     <div className="featured-card">
       <div className="featured-img-wrap">
@@ -16,9 +29,9 @@ const FeaturedCard = ({ item }) => {
       </div>
       <div className="featured-body">
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <span className={`veg-dot ${item.tags.includes('non-veg') ? 'non-veg' : 'veg'}`}></span>
+          <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
           <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
-            {item.tags.includes('non-veg') ? 'Non-Veg' : 'Veg'}
+            {item.isVeg ? 'Veg' : 'Non-Veg'}
           </span>
         </div>
         <h3 className="featured-name">{item.name}</h3>
@@ -28,7 +41,7 @@ const FeaturedCard = ({ item }) => {
         </div>
         <div className="featured-footer">
           <span className="featured-price">₹{item.price}</span>
-          <button className="btn-primary" style={{ padding: '9px 18px', fontSize: '13px' }} onClick={() => addItem(item)}>
+          <button className="btn-primary" style={{ padding: '9px 18px', fontSize: '13px' }} onClick={handleAdd}>
             + Add
           </button>
         </div>
@@ -39,13 +52,19 @@ const FeaturedCard = ({ item }) => {
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
+  const [showCookie, setShowCookie] = useState(() => !localStorage.getItem('mm_cookie_accepted'));
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => setFeatured(data.filter(i => i.isAvailable).slice(0, 6)))
       .catch(err => console.error(err));
   }, []);
+
+  const acceptCookie = () => {
+    localStorage.setItem('mm_cookie_accepted', 'true');
+    setShowCookie(false);
+  };
 
   return (
     <div className="home page-enter">
@@ -80,7 +99,7 @@ export default function Home() {
             </div>
             <div className="hero-stats">
               <div className="stat">
-                <span className="stat-num">5,000+</span>
+                <span className="stat-num">100+</span>
                 <span className="stat-lbl">Happy Customers</span>
               </div>
               <div className="stat-divider"></div>
@@ -117,6 +136,31 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── Trust Bar & Location Disclosure ── */}
+      <div className="trust-banner">
+        <div className="container trust-grid">
+          <div className="trust-item">
+            <Shield size={18} />
+            <span>Secure Checkout 🔒</span>
+          </div>
+          <div className="trust-item">
+            <Leaf size={18} />
+            <span>Fresh & Hygienic Food</span>
+          </div>
+          <div className="trust-item">
+            <Star size={18} fill="#f39c12" stroke="#f39c12" />
+            <span>Trusted by 5k+ Users</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="location-notice">
+        <div className="container location-inner">
+          <MapPin size={16} color="var(--green-main)" />
+          <p><strong>Note:</strong> We use your location to deliver fresh, hot meals right to your doorstep. 🏠</p>
+        </div>
+      </div>
 
       {/* ── How It Works ── */}
       <section className="how-section section">
@@ -260,6 +304,21 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* ── Cookie Notice ── */}
+      {showCookie && (
+        <div className="cookie-banner animated-fade-up">
+          <div className="container cookie-inner">
+            <div className="cookie-text">
+              🍪 We use cookies to improve your experience and deliver fresh nutrition seamlessly.
+            </div>
+            <div className="cookie-actions">
+              <Link to="/privacy" className="btn-text" style={{ fontSize: 13, marginRight: 15 }}>Learn More</Link>
+              <button className="btn-primary" style={{ padding: '8px 24px', fontSize: 13 }} onClick={acceptCookie}>Accept</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

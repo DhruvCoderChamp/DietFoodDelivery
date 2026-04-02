@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone } from 'lucide-react';
 import './Admin.css';
 
 const STATUS_COLORS = {
@@ -13,7 +13,7 @@ const STATUS_COLORS = {
 };
 
 export default function Admin() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, authFetch } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,6 +22,7 @@ export default function Admin() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (isAdmin) {
@@ -32,7 +33,7 @@ export default function Admin() {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/products');
+      const res = await authFetch('/api/products');
       const data = await res.json();
       setItems(data);
     } catch (err) { console.error('Error fetching items', err); }
@@ -40,9 +41,10 @@ export default function Admin() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/orders');
+      const res = await authFetch('/api/orders');
       const data = await res.json();
-      setOrders(data);
+      // Industry standard: newest orders at the top
+      setOrders(data.sort((a, b) => (b.id || 0) - (a.id || 0)));
     } catch (err) { console.error('Error fetching orders', err); }
   };
 
@@ -67,7 +69,7 @@ export default function Admin() {
   const handleDelete = async (id) => {
     if (window.confirm('Delete this item?')) {
       try {
-        await fetch(`http://localhost:8080/api/admin/products/${id}`, { method: 'DELETE' });
+        await authFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
         fetchItems();
       } catch (err) { console.error('Error deleting', err); }
     }
@@ -75,9 +77,8 @@ export default function Admin() {
 
   const handleStatusChange = async (orderId, status) => {
     try {
-      await fetch(`http://localhost:8080/api/admin/orders/${orderId}`, {
+      await authFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
       fetchOrders();
@@ -97,15 +98,13 @@ export default function Admin() {
     if (!newItem.name || !newItem.price) return;
     try {
       if (editItem) {
-        await fetch(`http://localhost:8080/api/admin/products/${editItem.id}`, {
+        await authFetch(`/api/admin/products/${editItem.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newItem)
         });
       } else {
-        await fetch('http://localhost:8080/api/admin/products', {
+        await authFetch('/api/admin/products', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newItem)
         });
       }
@@ -123,26 +122,54 @@ export default function Admin() {
   };
 
   return (
-    <div className="admin-page page-enter">
-      {/* Sidebar */}
+    <div className={`admin-page ${sidebarOpen ? 'sidebar-open' : ''} page-enter`}>
+      {/* Mobile Header Bar */}
+      <header className="admin-mobile-header">
+        <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
+          <MenuIcon size={24} />
+        </button>
+        <span className="mobile-header-title">
+          {activeTab === 'dashboard' ? 'Overview' : activeTab === 'orders' ? 'Orders' : 'Products'}
+        </span>
+        <button className="mobile-add-btn" onClick={() => { setActiveTab('menu'); setShowAddModal(true); }}>
+          <Plus size={20} />
+        </button>
+      </header>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && <div className="sidebar-overlay-bg" onClick={() => setSidebarOpen(false)}></div>}
+
       <div className="admin-layout">
-        <aside className="admin-sidebar">
-          <div className="admin-logo">
-            <div style={{ fontSize: 28 }}>🥗</div>
-            <div>
-              <div className="admin-logo-name">My Morning</div>
-              <div className="admin-logo-tag">Admin Panel</div>
+        <aside className="admin-sidebar shadow-lg">
+          <div className="sidebar-header">
+            <div className="admin-logo">
+              <div style={{ fontSize: 24 }}>🥗</div>
+              <div>
+                <div className="admin-logo-name">My Morning</div>
+                <div className="admin-logo-tag">Admin Panel</div>
+              </div>
             </div>
-          </div>
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-            { id: 'orders', label: 'Orders', icon: '📦' },
-            { id: 'menu', label: 'Manage Products', icon: '🍱' },
-          ].map(tab => (
-            <button key={tab.id} className={`sidebar-item ${activeTab === tab.id ? 'sidebar-active' : ''}`} onClick={() => setActiveTab(tab.id)}>
-              <span>{tab.icon}</span> {tab.label}
+            <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)}>
+              <X size={20} />
             </button>
-          ))}
+          </div>
+          
+          <nav className="sidebar-nav">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+              { id: 'orders', label: 'Orders', icon: '📦' },
+              { id: 'menu', label: 'Manage Products', icon: '🍱' },
+            ].map(tab => (
+              <button 
+                key={tab.id} 
+                className={`sidebar-item ${activeTab === tab.id ? 'sidebar-active' : ''}`} 
+                onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
+              >
+                <span className="sidebar-item-icon">{tab.icon}</span> 
+                <span className="sidebar-item-label">{tab.label}</span>
+              </button>
+            ))}
+          </nav>
           <div className="sidebar-divider"></div>
           <div className="admin-user-info">
             <div className="admin-avatar">{user.name[0]}</div>
@@ -161,7 +188,15 @@ export default function Admin() {
               <div className="admin-page-title">Dashboard Overview</div>
               <div className="stats-grid">
                 {stats.map(s => (
-                  <div className={`stat-card stat-${s.color}`} key={s.label}>
+                  <div 
+                    className={`stat-card stat-${s.color}`} 
+                    key={s.label}
+                    onClick={() => {
+                      if (s.label.includes('Products')) setActiveTab('menu');
+                      if (s.label.includes('Orders') || s.label.includes('Revenue') || s.label.includes('Customers')) setActiveTab('orders');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="stat-card-icon">{s.icon}</div>
                     <div className="stat-card-num">{s.value}</div>
                     <div className="stat-card-label">{s.label}</div>
@@ -246,11 +281,26 @@ export default function Admin() {
                   </select>
                 </div>
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <label className="form-label">Toggles</label>
+                  <label className="form-label">Diet Preference</label>
                   <div style={{ display: 'flex', gap: 15 }}>
-                    <label><input type="checkbox" checked={newItem.isVeg} onChange={e => setNewItem(p => ({ ...p, isVeg: e.target.checked }))} /> Veg</label>
-                    <label><input type="checkbox" checked={newItem.isAvailable} onChange={e => setNewItem(p => ({ ...p, isAvailable: e.target.checked }))} /> Available</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
+                      <input type="radio" name="diet" checked={newItem.isVeg} onChange={() => setNewItem(p => ({ ...p, isVeg: true }))} />
+                      <span style={{ color: '#27ae60' }}>🟢 Veg</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
+                      <input type="radio" name="diet" checked={!newItem.isVeg} onChange={() => setNewItem(p => ({ ...p, isVeg: false }))} />
+                      <span style={{ color: '#e74c3c' }}>🔴 Non-Veg</span>
+                    </label>
                   </div>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Quantity Toggle</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
+                    <input type="checkbox" checked={newItem.isAvailable} onChange={e => setNewItem(p => ({ ...p, isAvailable: e.target.checked }))} /> 
+                    <span>Available in Stock</span>
+                  </label>
                 </div>
               </div>
               <div className="form-row">
@@ -310,28 +360,45 @@ function OrdersTable({ orders, onStatusChange }) {
         </thead>
         <tbody>
           {orders.map(order => (
-            <tr key={order.id}>
-              <td><span className="order-id">{order.orderId}</span></td>
-              <td>
+            <tr key={order.id} className="order-row">
+              <td data-label="Order ID"><span className="order-id">{order.orderId}</span></td>
+              <td data-label="Customer">
                 <div className="order-customer">{order.customerName}</div>
-                <div className="order-phone">{order.phone}</div>
+                <div className="order-phone"><Phone size={12} style={{marginRight: 4, transform: 'translateY(2px)'}}/>{order.phone}</div>
               </td>
-              <td className="order-items">{order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
-              <td><strong style={{ color: 'var(--green-main)' }}>₹{order.totalAmount}</strong></td>
-              <td>{order.address}</td>
-              <td>
+              <td data-label="Items" className="order-items">{order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
+              <td data-label="Total"><strong style={{ color: 'var(--green-main)' }}>₹{order.totalAmount}</strong></td>
+              <td data-label="Address" className="order-address" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.4, fontSize: 13 }}>
+                {order.address.split(/(https?:\/\/maps\.google\.com[^\s]+)/g).map((part, i) =>
+                  part.startsWith('http') ? (
+                    <a key={i} href={part} target="_blank" rel="noreferrer" className="map-link" style={{ color: '#3498db', fontWeight: 600, display: 'inline-block', marginTop: 4 }}>
+                      <MapPin size={14} style={{ transform: 'translateY(3px)', marginRight: 2 }}/> Open Map
+                    </a>
+                  ) : part
+                )}
+              </td>
+              <td data-label="Status">
                 <span className="order-status" style={{ background: (STATUS_COLORS[order.status]||'#000') + '20', color: STATUS_COLORS[order.status], border: `1px solid ${STATUS_COLORS[order.status]}40` }}>
                   {order.status}
                 </span>
               </td>
-              <td>
+              <td data-label="Update">
                 <select className="status-select" value={order.status} onChange={e => onStatusChange(order.id, e.target.value)}>
                   {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </td>
             </tr>
           ))}
-          {orders.length === 0 && <tr><td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>No orders yet.</td></tr>}
+          {orders.length === 0 && (
+            <tr>
+              <td colSpan="7">
+                <div className="empty-state" style={{ padding: '40px 20px', background: 'transparent', width: '100%', border: 'none' }}>
+                  <Package size={48} color="var(--text-muted)" />
+                  <p>No orders currently available.</p>
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

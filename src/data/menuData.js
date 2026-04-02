@@ -180,13 +180,10 @@ export const categories = [
 
 export const deliveryAreas = [
   "Whitefield",
-  "Marathahalli",
-  "Bellandur",
-  "Sarjapur Road",
-  "HSR Layout",
-  "Koramangala",
-  "Indiranagar",
-  "Jayanagar",
+  "Whitefield East",
+  "Whitefield North",
+  "AECS Layout",
+  "Brookefield"
 ];
 
 export const testimonials = [
@@ -201,7 +198,7 @@ export const testimonials = [
   {
     id: 2,
     name: "Rahul M.",
-    role: "Fitness Coach, Marathahalli",
+    role: "Fitness Coach, AECS Layout",
     text: "Finally a healthy breakfast option that actually tastes good! The Power Protein Bowl is my go-to. My clients love it too. Perfectly portion controlled.",
     rating: 5,
     avatar: "RM",
@@ -209,7 +206,7 @@ export const testimonials = [
   {
     id: 3,
     name: "Ananya K.",
-    role: "MBA Student, HSR Layout",
+    role: "MBA Student, Brookefield",
     text: "Subscribed to the weekly plan and it's the best decision I made. Saves time, saves money, and I feel so much better. Love the variety every day!",
     rating: 5,
     avatar: "AK",

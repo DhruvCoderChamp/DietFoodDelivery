@@ -39,6 +39,7 @@ export default function Footer() {
             <Link to="/menu" className="footer-link">Menu</Link>
             <Link to="/subscription" className="footer-link">Subscription Plans</Link>
             <Link to="/cart" className="footer-link">Cart</Link>
+            <Link to="/contact" className="footer-link">Contact Us</Link>
             <Link to="/login" className="footer-link">Login / Sign Up</Link>
           </nav>
         </div>
@@ -46,7 +47,7 @@ export default function Footer() {
         <div className="footer-col">
           <div className="footer-col-title">Delivery Areas</div>
           <nav className="footer-links">
-            {['Whitefield', 'Marathahalli', 'Bellandur', 'HSR Layout', 'Koramangala', 'Indiranagar'].map(area => (
+            {['Whitefield', 'Whitefield North', 'Whitefield East'].map(area => (
               <span key={area} className="footer-link-plain">{area}</span>
             ))}
           </nav>
@@ -71,9 +72,10 @@ export default function Footer() {
         <div className="container footer-bottom-inner">
           <span>© 2025 My Morning. All rights reserved. Built with 💚 in Bangalore.</span>
           <div className="footer-bottom-links">
-            <a href="#" className="footer-bottom-link">Privacy Policy</a>
-            <a href="#" className="footer-bottom-link">Terms of Service</a>
-            <a href="#" className="footer-bottom-link">FSSAI: 21423BLR</a>
+            <Link to="/privacy" className="footer-bottom-link">Privacy Policy</Link>
+            <Link to="/terms" className="footer-bottom-link">Terms of Service</Link>
+            <Link to="/refund" className="footer-bottom-link">Refund Policy</Link>
+            <span className="footer-bottom-link" style={{ cursor: 'default' }}>FSSAI: 21423BLR</span>
           </div>
         </div>
       </div>

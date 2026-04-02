@@ -1,9 +1,9 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBlBZZNzC2I4HGwGTIRerlZd9oZ10lRUIE",
+  apiKey: "AIzaSyDuoIXZu2HudJSNFy8EjvC4rlfVavC6VPw",
   authDomain: "my-morning-delivery.firebaseapp.com",
   projectId: "my-morning-delivery",
   storageBucket: "my-morning-delivery.firebasestorage.app",
@@ -14,4 +14,3 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();

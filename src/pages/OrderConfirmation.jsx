@@ -1,12 +1,56 @@
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle, Clock, MapPin, ShoppingBag } from 'lucide-react';
+import { CheckCircle, Clock, MapPin, ShoppingBag, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './OrderConfirmation.css';
 
+const STEPS = [
+  { key: 'Confirmed', label: 'Order Placed', icon: '✅' },
+  { key: 'Preparing', label: 'Being Prepared', icon: '👨‍🍳' },
+  { key: 'Out for Delivery', label: 'Out for Delivery', icon: '🛵' },
+  { key: 'Delivered', label: 'Delivered', icon: '🏠' },
+];
+
+const STATUS_MESSAGES = {
+  'Confirmed': 'Your order has been received! We\'ll start preparing it shortly.',
+  'Preparing': 'Our chefs are preparing your fresh, nutritious meal right now! 🍳',
+  'Out for Delivery': 'Your order is on the way! Our delivery partner will reach you soon. 🛵',
+  'Delivered': 'Your order has been delivered. Enjoy your healthy meal! 🎉',
+};
+
 export default function OrderConfirmation() {
-  const orderId = sessionStorage.getItem('mm_order_id') || 'MM' + Math.random().toString(36).slice(2, 8).toUpperCase();
+  const { authFetch } = useAuth();
+  const orderId = sessionStorage.getItem('mm_order_id');
   const checkoutData = JSON.parse(sessionStorage.getItem('mm_checkout') || '{}');
   const { form = {}, total = 0 } = checkoutData;
+
+  const [liveStatus, setLiveStatus] = useState('Confirmed');
+  const [lastChecked, setLastChecked] = useState(new Date());
+  const [checking, setChecking] = useState(false);
+
+  const fetchStatus = async () => {
+    if (!orderId) return;
+    setChecking(true);
+    try {
+      const res = await authFetch(`/api/orders/${orderId}`);
+      if (res.ok) {
+        const myOrder = await res.json();
+        setLiveStatus(myOrder.status);
+      }
+    } catch (err) { console.error('Failed to fetch status', err); }
+    setLastChecked(new Date());
+    setChecking(false);
+  };
+
+  // Poll for status updates every 10 seconds
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const currentStepIndex = STEPS.findIndex(s => s.key === liveStatus);
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -18,14 +62,57 @@ export default function OrderConfirmation() {
         <div className="success-anim">
           <CheckCircle size={72} strokeWidth={1.5} />
         </div>
-        <h1 className="confirmation-title">Order Confirmed! 🎉</h1>
-        <p className="confirmation-sub">Your healthy breakfast is on the way!</p>
+        <h1 className="confirmation-title">
+          {liveStatus === 'Delivered' ? 'Order Delivered! 🎉' : 'Order Confirmed! 🎉'}
+        </h1>
+        <p className="confirmation-sub">
+          {STATUS_MESSAGES[liveStatus] || 'Your healthy breakfast is on the way!'}
+        </p>
         <div className="order-id-pill">Order ID: <strong>{orderId}</strong></div>
       </div>
 
       <div className="container confirmation-content">
         <div className="confirmation-grid">
           <div className="confirmation-main">
+            {/* Live Status Tracker */}
+            <div className="conf-card">
+              <div className="conf-card-title" style={{ justifyContent: 'space-between' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>📍 Live Order Tracker</span>
+                <button 
+                  onClick={fetchStatus} 
+                  disabled={checking}
+                  style={{ 
+                    background: 'none', border: '1.5px solid var(--border)', borderRadius: 8, 
+                    padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 12, fontWeight: 600, color: 'var(--text-mid)', transition: 'all 0.2s'
+                  }}
+                >
+                  <RefreshCw size={13} className={checking ? 'spin-icon' : ''} /> Refresh
+                </button>
+              </div>
+              
+              {/* Live Status Badge */}
+              <div className="live-status-banner" data-status={liveStatus}>
+                <div className="live-dot"></div>
+                <span className="live-status-text">{liveStatus}</span>
+                <span className="live-time">Updated {lastChecked.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+
+              <div className="tracker">
+                {STEPS.map((step, i) => {
+                  const isDone = i <= currentStepIndex;
+                  const isActive = i === currentStepIndex;
+                  return (
+                    <div className={`tracker-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`} key={i}>
+                      <div className={`tracker-icon ${isActive ? 'pulse-icon' : ''}`}>{step.icon}</div>
+                      <div className="tracker-label">{step.label}</div>
+                      {i < STEPS.length - 1 && <div className={`tracker-line ${isDone && i < currentStepIndex ? 'done' : ''}`}></div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Delivery Info */}
             <div className="conf-card">
               <div className="conf-card-title">
@@ -41,8 +128,8 @@ export default function OrderConfirmation() {
                   <span className="conf-val conf-highlight">7:00 AM – 8:00 AM 🌅</span>
                 </div>
                 <div className="conf-row">
-                  <span className="conf-key">Status</span>
-                  <span className="status-pill">Preparing</span>
+                  <span className="conf-key">Current Status</span>
+                  <span className="status-pill" data-status={liveStatus}>{liveStatus}</span>
                 </div>
               </div>
             </div>
@@ -64,7 +151,7 @@ export default function OrderConfirmation() {
                   </div>
                   <div className="conf-row">
                     <span className="conf-key">Address</span>
-                    <span className="conf-val">{form.address}</span>
+                    <span className="conf-val" style={{ whiteSpace: 'pre-wrap', maxWidth: 300 }}>{form.address}</span>
                   </div>
                   {form.area && (
                     <div className="conf-row">
@@ -75,39 +162,21 @@ export default function OrderConfirmation() {
                 </div>
               </div>
             )}
-
-            {/* Tracker */}
-            <div className="conf-card">
-              <div className="conf-card-title">📍 Order Tracker</div>
-              <div className="tracker">
-                {[
-                  { label: 'Order Placed', icon: '✅', done: true },
-                  { label: 'Being Prepared', icon: '👨‍🍳', done: true },
-                  { label: 'Out for Delivery', icon: '🛵', done: false },
-                  { label: 'Delivered', icon: '🏠', done: false },
-                ].map((step, i) => (
-                  <div className={`tracker-step ${step.done ? 'done' : ''}`} key={i}>
-                    <div className="tracker-icon">{step.icon}</div>
-                    <div className="tracker-label">{step.label}</div>
-                    {i < 3 && <div className={`tracker-line ${step.done ? 'done' : ''}`}></div>}
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Side Panel */}
           <div className="confirmation-side">
             <div className="conf-card message-card">
               <div className="message-emoji">🥗</div>
-              <h3 className="message-title">Your healthy breakfast is on the way!</h3>
+              <h3 className="message-title">
+                {liveStatus === 'Delivered' ? 'Enjoy your meal!' : 'Your healthy breakfast is on the way!'}
+              </h3>
               <p className="message-body">
-                Our chefs are preparing your fresh, nutritious meal right now.
-                Expect delivery tomorrow morning between <strong>7-8 AM</strong>.
+                {STATUS_MESSAGES[liveStatus]}
               </p>
               {total > 0 && (
                 <div className="message-total">
-                  Total Paid: <strong>₹{total}</strong>
+                  Order Total: <strong>₹{total}</strong>
                 </div>
               )}
             </div>

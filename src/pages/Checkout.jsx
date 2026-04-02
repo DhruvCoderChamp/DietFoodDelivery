@@ -3,31 +3,99 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, LocateFixed, Clock, User, Phone, Home, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import './Checkout.css';
 
 export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
+  const { user, authFetch } = useAuth();
   const navigate = useNavigate();
   const deliveryFee = totalPrice >= 199 ? 0 : 30;
   const total = totalPrice + deliveryFee;
 
-  const [form, setForm] = useState({ name: '', phone: '', address: '', area: '', instructions: '' });
+  const [form, setForm] = useState({ 
+    name: user?.name || '', 
+    phone: user?.phone || '', 
+    address: '', 
+    area: '', 
+    instructions: '' 
+  });
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
 
   const detectLocation = () => {
     setLocating(true);
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      setLocating(false);
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        // Simulate reverse geocoding
-        setForm(f => ({ ...f, address: `Near Whitefield Metro, Bengaluru, Karnataka 560066`, area: 'Whitefield' }));
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+        let addressText = `[GPS Detected Location]\n👉 Map: ${mapUrl}`;
+
+        try {
+          const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+          let googleSuccess = false;
+
+          if (apiKey) {
+            const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`);
+            const data = await res.json();
+
+            // Only proceed if API quota and credentials are OK
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+              let bestResult = data.results[0];
+              const properAddress = data.results.find(r => 
+                 !r.formatted_address.includes('+') && 
+                 r.formatted_address.length > 15
+              );
+              if (properAddress) bestResult = properAddress;
+
+              addressText = `${bestResult.formatted_address}\n\n👉 Google Map Pin: ${mapUrl}`;
+              
+              if (form.address && !form.address.includes('Map Pin')) {
+                 addressText = `${form.address}, ${bestResult.formatted_address}\n\n👉 Google Map Pin: ${mapUrl}`;
+              }
+              googleSuccess = true;
+            }
+          } 
+          
+          // Fall back to Nominatim if API Key fails, is denied, or isn't set
+          if (!googleSuccess) {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.address) {
+                // Build a much cleaner, human-readable address from the raw components
+                const { amenity, building, road, neighbourhood, suburb, postcode } = data.address;
+                const cleanParts = [amenity, building, road, neighbourhood, suburb].filter(Boolean);
+                
+                // Only take the first 3 highly specific components to avoid giant strings
+                let cleanAddress = cleanParts.slice(0, 3).join(', ');
+                if (!cleanAddress && data.display_name) cleanAddress = data.display_name.split(',').slice(0, 3).join(', ');
+                
+                addressText = `${cleanAddress}${postcode ? ' - ' + postcode : ''}\n\n👉 Google Map Pin: ${mapUrl}`;
+                
+                if (form.address && !form.address.includes('Map Pin')) {
+                   addressText = `${form.address}, ${addressText}`;
+                }
+              }
+            }
+          }
+        } catch (err) { }
+
+        setForm(f => ({ ...f, address: addressText }));
         setLocating(false);
       },
-      () => {
-        setForm(f => ({ ...f, address: 'Whitefield, Bengaluru, Karnataka 560066', area: 'Whitefield' }));
+      (err) => {
+        alert("Failed to get location! Please explicitly allow location permission in your browser popup.");
         setLocating(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -40,12 +108,91 @@ export default function Checkout() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    // Save order info to session
+
+    // 1. Save order to Backend DB with real address + Google Maps link
+    let savedOrderId = 'MM' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    try {
+      const res = await authFetch('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: user?.id,
+          customerName: form.name,
+          phone: form.phone,
+          address: form.address,
+          items: items.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image })),
+          totalAmount: total,
+          timeSlot: 'Morning',
+          status: 'Confirmed'
+        })
+      });
+      if (res.ok) {
+        const savedOrder = await res.json();
+        savedOrderId = savedOrder.orderId; // Use the REAL orderId from the database
+      }
+    } catch (err) { console.error('Failed to save order to DB', err); }
+
+    // 2. Build WhatsApp message with full order details
+    const itemLines = items.map(i => `• ${i.name} × ${i.quantity} — ₹${i.price * i.quantity}`).join('%0a');
+    let pureAddress = form.address;
+    let locationLink = '';
+    
+    // Extract map link if exists
+    const mapMatch = form.address.match(/(https:\/\/maps\.google\.com\/\?q=[^\s]+)/);
+    if (mapMatch) {
+      locationLink = mapMatch[1];
+      pureAddress = form.address
+         .replace(/(\n\n👉 Google Map Pin: .*)|(\n👉 Map: .*)|(\[GPS Detected Location\]\n)/g, '');
+    }
+    
+    pureAddress = pureAddress.replace(/\n/g, '%0a');
+
+    let textLines = [
+      `🌿 *New Order — My Morning*`,
+      ``,
+      `━━━━━━━━━━━━━━━`,
+      ``,
+      `🧾 *Order ID:* ${savedOrderId}`,
+      ``,
+      `👤 *Customer Details*`,
+      `Name: ${form.name}  `,
+      `Phone: ${form.phone}  `,
+      ``,
+      `📍 *Delivery Address*`,
+      `${pureAddress}  `,
+      form.area ? `Area: ${form.area}  ` : null,
+      form.instructions ? `Note: ${form.instructions}  ` : null,
+      ``,
+      locationLink ? `📌 *Location:*  \n${locationLink}` : null,
+      locationLink ? `` : null,
+      `━━━━━━━━━━━━━━━`,
+      ``,
+      `🍱 *Order Summary*`,
+      `${itemLines}`,
+      ``,
+      `💰 *Billing*`,
+      `Subtotal: ₹${totalPrice}  `,
+      `Delivery: ₹${deliveryFee}  `,
+      `*Total: ₹${total}*  `,
+      ``,
+      `━━━━━━━━━━━━━━━`,
+      ``,
+      `🙏 Please confirm this order and share payment details.`,
+      ``,
+      `💚 *My Morning Team*`
+    ];
+
+    const text = textLines.filter(line => line !== null).join('%0a').replace(/\n/g, '%0a');
+
+    window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
+
+    // 3. Save to session + clear cart + redirect
+    sessionStorage.setItem('mm_order_id', savedOrderId);
     sessionStorage.setItem('mm_checkout', JSON.stringify({ form, items, total, deliveryFee }));
-    navigate('/payment');
+    clearCart();
+    navigate('/order-confirmation');
   };
 
   return (
@@ -109,7 +256,7 @@ export default function Checkout() {
               <label className="form-label" htmlFor="checkout-area">Area</label>
               <select id="checkout-area" className="form-input" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))}>
                 <option value="">Select delivery area</option>
-                {['Whitefield', 'Marathahalli', 'Bellandur', 'Sarjapur Road', 'HSR Layout', 'Koramangala', 'Indiranagar', 'Jayanagar'].map(a => (
+                {['Whitefield', 'Whitefield (AECS Layout)', 'Whitefield (Brookefield)', 'Whitefield (Hope Farm)'].map(a => (
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
@@ -130,8 +277,8 @@ export default function Checkout() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '16px', marginTop: 8 }}>
-              Continue to Payment <ChevronRight size={18} />
+            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '16px', marginTop: 8, gap: 8 }}>
+              📱 Place Order via WhatsApp <ChevronRight size={18} />
             </button>
           </form>
 
