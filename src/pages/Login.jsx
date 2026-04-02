@@ -25,6 +25,17 @@ export default function Login() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPass, setAdminPass] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   useEffect(() => {
     if (currentUser) navigate('/');
@@ -37,12 +48,14 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Robustly clear existing verifier to prevent SESSION_EXPIRED
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
+        const container = document.getElementById('recaptcha-container');
+        if (container) container.innerHTML = '';
       }
       
-      const appVerifier = new RecaptchaVerifier(auth, 'send-otp-btn', {
+      const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
         callback: () => {}
       });
@@ -51,10 +64,11 @@ export default function Login() {
       const result = await signInWithPhoneNumber(auth, '+91' + phone, appVerifier);
       setConfirmationResult(result);
       setStep('otp');
+      setResendTimer(30); // Start 30s timer
       setLoading(false);
     } catch(err) {
       console.error(err);
-      setError('Failed to send OTP. Please try again.');
+      setError('Failed to send OTP. Please check your network or try again.');
       setLoading(false);
     }
   };
@@ -228,7 +242,18 @@ export default function Login() {
                     <button className="btn-primary auth-submit" onClick={handleVerifyOTP} disabled={loading}>
                        {loading ? <div className="spinner-small" /> : <>Verify & Continue <ArrowRight size={16} /></>}
                     </button>
-                    <button className="btn-text-link" onClick={() => setStep('phone')}>Edit Number</button>
+                    
+                    <div className="otp-footer-actions">
+                      <button className="btn-text-link" onClick={() => setStep('phone')}>Edit Number</button>
+                      <button 
+                        className="btn-text-link" 
+                        onClick={handleSendOTP} 
+                        disabled={resendTimer > 0 || loading}
+                        style={{ color: resendTimer > 0 ? '#999' : 'var(--green-main)' }}
+                      >
+                        {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -258,6 +283,7 @@ export default function Login() {
           </div>
         </div>
       </div>
+      <div id="recaptcha-container"></div>
     </div>
   );
 }
