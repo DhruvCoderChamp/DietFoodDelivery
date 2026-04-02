@@ -29,7 +29,7 @@ public class MenuItem {
     @ElementCollection
     private List<String> tags;
 
-    // Standard Getters/Setters to bypass Lombok issues on server
+    // Standard Getters/Setters to guarantee server-side compatibility
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
