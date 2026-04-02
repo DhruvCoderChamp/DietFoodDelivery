@@ -17,6 +17,7 @@ public class MyMorningApplication {
         SpringApplication.run(MyMorningApplication.class, args);
     }
 
+/*
     @PostConstruct
     public void init() {
         try {
@@ -27,4 +28,5 @@ public class MyMorningApplication {
             // Ignore if already text type or table missing during initial create
         }
     }
+*/
 }
