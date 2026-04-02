@@ -14,10 +14,8 @@ services:
     ports:
       - "5432:5432"
     networks:
-      default:
-        aliases:
-          - db
-          - mm_postgres
+      backend-net:
+        ipv4_address: 172.19.0.100
 
   backend:
     build: 
@@ -26,20 +24,15 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://mm_postgres:5432/mymorning
+      - DB_URL=jdbc:postgresql://172.19.0.100:5432/mymorning
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
     ports:
       - "8080:8080"
     depends_on:
       - db
-    links:
-      - db:db
     networks:
-      default:
-        aliases:
-          - backend
-          - mm_backend
+      backend-net:
 
   frontend:
     build:
@@ -54,6 +47,15 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
+    networks:
+      backend-net:
+
+networks:
+  backend-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
 
 volumes:
   postgres_data:
