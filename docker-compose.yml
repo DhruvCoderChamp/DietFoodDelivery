@@ -21,7 +21,7 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://db:5432/mymorning
+      - DB_URL=jdbc:postgresql://mm_postgres:5432/mymorning
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
     ports:
