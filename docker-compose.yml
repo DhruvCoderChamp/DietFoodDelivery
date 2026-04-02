@@ -15,7 +15,7 @@ services:
       - "5432:5432"
     networks:
       backend-net:
-        ipv4_address: 172.19.0.100
+        ipv4_address: 172.25.0.100
 
   backend:
     build: 
@@ -24,7 +24,7 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://172.19.0.100:5432/mymorning
+      - DB_URL=jdbc:postgresql://172.25.0.100:5432/mymorning
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
     ports:
@@ -55,7 +55,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.19.0.0/16
+        - subnet: 172.25.0.0/16
 
 volumes:
   postgres_data:
