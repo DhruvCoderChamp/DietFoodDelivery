@@ -6,6 +6,7 @@ import com.mymorning.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Sort;
 import java.util.List;
 
 @RestController
@@ -17,7 +18,7 @@ public class MenuController {
 
     @GetMapping("/api/products")
     public List<MenuItem> getAllMenuItems() {
-        return menuItemRepository.findAllByOrderByOrderIndexAsc();
+        return menuItemRepository.findAll(Sort.by(Sort.Direction.ASC, "orderIndex"));
     }
 
     @PostMapping("/api/admin/products")

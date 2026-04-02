@@ -7,5 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
-    java.util.List<MenuItem> findAllByOrderByOrderIndexAsc();
 }
