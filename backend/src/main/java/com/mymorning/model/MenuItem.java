@@ -1,14 +1,8 @@
-
 package com.mymorning.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
-import jakarta.persistence.ElementCollection;
 
 @Entity
 @Data
@@ -23,6 +17,8 @@ public class MenuItem {
     private Integer protein;
     private String category;
     private String badge;
+    
+    @Column(columnDefinition="TEXT")
     private String description;
     
     @Column(columnDefinition="TEXT")
