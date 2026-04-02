@@ -30,6 +30,7 @@ public class MenuItem {
 
     private Boolean isVeg = true;
     private Boolean isAvailable = true;
+    private Integer orderIndex = 0;
 
     @ElementCollection
     private List<String> tags;

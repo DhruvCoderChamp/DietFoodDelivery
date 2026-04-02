@@ -59,8 +59,8 @@ export const menuItems = [
   {
     id: 5,
     name: "Boiled Eggs (3) & Fruit & Salad",
-    category: "combos",
-    tags: ["non-veg", "high-protein", "low-carb"],
+    category: "eggitarian",
+    tags: ["eggitarian", "high-protein", "low-carb"],
     calories: 290,
     protein: 24,
     price: 99,
@@ -115,8 +115,8 @@ export const menuItems = [
   {
     id: 9,
     name: "Egg White Omelette",
-    category: "breakfast",
-    tags: ["non-veg", "high-protein", "low-carb"],
+    category: "eggitarian",
+    tags: ["eggitarian", "high-protein", "low-carb"],
     calories: 180,
     protein: 22,
     price: 99,
@@ -168,14 +168,30 @@ export const menuItems = [
     rating: 4.9,
     reviews: 345,
   },
+  {
+    id: 13,
+    name: "Classic Egg & Avocado Toast",
+    category: "eggitarian",
+    tags: ["eggitarian", "high-protein"],
+    calories: 320,
+    protein: 16,
+    price: 89,
+    image: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=80",
+    description: "Two flawlessly poached egg on sourdough with mashed avocado and chili flakes",
+    badge: "Most Loved",
+    rating: 4.9,
+    reviews: 212,
+  },
 ];
 
 export const categories = [
   { id: "all", label: "All Items" },
-  { id: "bowls", label: "Bowls" },
-  { id: "smoothies", label: "Smoothies" },
+  { id: "Protein Bowl", label: "Bowls" },
+  { id: "Smoothie", label: "Smoothies" },
   { id: "combos", label: "Combos" },
-  { id: "breakfast", label: "Breakfast" },
+  { id: "Breakfast", label: "Breakfast" },
+  { id: "Eggitarian", label: "Eggitarian" },
+  { id: "keto", label: "Keto" },
 ];
 
 export const deliveryAreas = [

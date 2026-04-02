@@ -17,12 +17,22 @@ public class MenuController {
 
     @GetMapping("/api/products")
     public List<MenuItem> getAllMenuItems() {
-        return menuItemRepository.findAll();
+        return menuItemRepository.findAllByOrderByOrderIndexAsc();
     }
 
     @PostMapping("/api/admin/products")
     public MenuItem createMenuItem(@RequestBody MenuItem menuItem) {
         return menuItemRepository.save(menuItem);
+    }
+
+    @PutMapping("/api/admin/products/reorder")
+    public void reorderProducts(@RequestBody List<MenuItem> products) {
+        for (MenuItem p : products) {
+            menuItemRepository.findById(p.getId()).ifPresent(item -> {
+                item.setOrderIndex(p.getOrderIndex());
+                menuItemRepository.save(item);
+            });
+        }
     }
 
     @PutMapping("/api/admin/products/{id}")
@@ -39,6 +49,7 @@ public class MenuController {
             item.setIsVeg(updatedItem.getIsVeg());
             item.setIsAvailable(updatedItem.getIsAvailable());
             item.setTags(updatedItem.getTags());
+            item.setOrderIndex(updatedItem.getOrderIndex());
             return menuItemRepository.save(item);
         }).orElseThrow(() -> new RuntimeException("Product not found"));
     }

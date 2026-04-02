@@ -2,7 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import './Admin.css';
 
 const STATUS_COLORS = {
@@ -21,8 +25,44 @@ export default function Admin() {
   const [orders, setOrders] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true });
+  const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setItems((prevItems) => {
+        const oldIndex = prevItems.findIndex((i) => i.id === active.id);
+        const newIndex = prevItems.findIndex((i) => i.id === over.id);
+        const reordered = arrayMove(prevItems, oldIndex, newIndex);
+        
+        // Update orderIndex locally for all items
+        const updatedWithIndexes = reordered.map((item, idx) => ({
+          ...item,
+          orderIndex: idx
+        }));
+
+        // Fire and forget reorder update to backend
+        authFetch('/api/admin/products/reorder', {
+          method: 'PUT',
+          body: JSON.stringify(updatedWithIndexes)
+        }).catch(err => console.error('Bulk reorder failure', err));
+
+        return updatedWithIndexes;
+      });
+    }
+  };
 
   useEffect(() => {
     if (isAdmin) {
@@ -35,7 +75,8 @@ export default function Admin() {
     try {
       const res = await authFetch('/api/products');
       const data = await res.json();
-      setItems(data);
+      // Ensure we preserve the order from the server
+      setItems(data.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)));
     } catch (err) { console.error('Error fetching items', err); }
   };
 
@@ -111,7 +152,7 @@ export default function Admin() {
       fetchItems();
       setShowAddModal(false);
       setEditItem(null);
-      setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true });
+      setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
     } catch (err) { console.error('Error saving item', err); }
   };
 
@@ -230,24 +271,22 @@ export default function Admin() {
             <div>
               <div className="admin-top-bar">
                 <div className="admin-page-title">Products ({items.length})</div>
-                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true }); setShowAddModal(true); }}>
+                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
                   <Plus size={16} /> Add Product
                 </button>
               </div>
               <div className="admin-menu-grid">
-                {items.map(item => (
-                  <div className="admin-menu-card" key={item.id} style={{ opacity: item.isAvailable ? 1 : 0.6 }}>
-                    <img src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'} alt={item.name} className="admin-menu-img" />
-                    <div className="admin-menu-body">
-                      <div className="admin-menu-name">{item.name}</div>
-                      <div className="admin-menu-meta">₹{item.price} · {item.category} {!item.isAvailable && '· 🛑 Out of Stock'}</div>
-                      <div className="admin-menu-actions">
-                        <button className="btn-ghost" onClick={() => openEdit(item)}><Edit2 size={13} /> Edit</button>
-                        <button className="btn-ghost danger" onClick={() => handleDelete(item.id)}><Trash2 size={13} /> Delete</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <DndContext 
+                  sensors={sensors} 
+                  collisionDetection={closestCenter} 
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext items={items} strategy={rectSortingStrategy}>
+                    {items.map(item => (
+                      <SortableItem key={item.id} id={item.id} item={item} onEdit={openEdit} onDelete={handleDelete} />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           )}
@@ -277,7 +316,7 @@ export default function Admin() {
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select className="form-input" value={newItem.category} onChange={e => setNewItem(p => ({ ...p, category: e.target.value }))}>
-                    {['Protein Bowl', 'Smoothie', 'Breakfast', 'keto'].map(c => <option key={c}>{c}</option>)}
+                    {['Protein Bowl', 'Smoothie', 'Breakfast', 'combos', 'Eggitarian', 'keto'].map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -401,6 +440,44 @@ function OrdersTable({ orders, onStatusChange }) {
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function SortableItem(props) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: props.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    position: 'relative'
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="admin-menu-card-wrapper">
+      <div className="admin-menu-card" style={{ opacity: props.item.isAvailable ? 1 : 0.6, height: '100%', marginBottom: 0 }}>
+        <div className="drag-handle" {...attributes} {...listeners} style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, background: 'rgba(255,255,255,0.9)', padding: 4, borderRadius: 6, cursor: 'grab', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <GripVertical size={16} />
+        </div>
+        <img src={props.item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'} alt={props.item.name} className="admin-menu-img" />
+        <div className="admin-menu-body">
+          <div className="admin-menu-name">{props.item.name}</div>
+          <div className="admin-menu-meta">₹{props.item.price} · {props.item.category}</div>
+          <div className="admin-menu-actions">
+            <button className="btn-ghost" onClick={() => props.onEdit(props.item)}><Edit2 size={13} /> Edit</button>
+            <button className="btn-ghost danger" onClick={() => props.onDelete(props.item.id)}><Trash2 size={13} /> Delete</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -410,3 +410,30 @@
   .admin-menu-grid { grid-template-columns: 1fr; }
   .admin-menu-img { height: 200px; }
 }
+
+/* Drag and Drop Styles */
+.admin-menu-card-wrapper {
+  touch-action: none;
+  height: 100%;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+  color: var(--green-main);
+  background: var(--green-pale) !important;
+  transform: scale(1.1);
+}
+
+.admin-menu-card.dragging {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important;
+  border: 1px solid var(--green-main) !important;
+  transform: scale(1.02);
+  cursor: grabbing;
+}

@@ -25,7 +25,7 @@ public class AuthController {
     private JwtUtils jwtUtils;
 
     private static final String ADMIN_CHECK_EMAIL = "mymorningblr@gmail.com";
-    private static final String ADMIN_CHECK_PASS = "admin123";
+    private static final String ADMIN_CHECK_PASS = "My123mor#@i123";
 
     /**
      * Admin login using credentials.
