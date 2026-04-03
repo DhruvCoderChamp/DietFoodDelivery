@@ -1,64 +1,30 @@
 
-/* Dashboard Layout */
-.sub-dashboard { padding-bottom: 120px; background: #fcfdfc; }
-.sub-dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding: 24px 0; border-bottom: 1.5px solid #e0eacb; }
-.user-overview { display: flex; align-items: center; gap: 16px; }
-.avatar-ring { width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid #2d6a1f; padding: 2px; }
-.avatar-ring img { width: 100%; height: 100%; border-radius: 50%; }
-.user-text h2 { font-size: 24px; font-weight: 900; color: #1a2e12; margin-bottom: 4px; }
-.user-text p { font-size: 14px; color: #6b8a5e; }
+/* Restore original layout as requested */
+.sub-hub { background: #fff; }
+.hub-header-premium { position: relative; height: 400px; overflow: hidden; }
+.master-bg { width: 100%; height: 100%; object-fit: cover; }
+.hub-header-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); display: flex; align-items: center; }
+/* ... (re-implementing standard styles if they were lost during git checkout) ... */
 
-.batch-help-btn { background: #fff; border: 1.5px solid #d4e8c8; padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 700; color: #2d6a1f; cursor: pointer; transition: all 0.2s ease; }
-.batch-help-btn:hover { background: #f8fcf5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+/* FIX FOR PRICE TAG CUTOFF */
+[style*="justify-content: space-between"] {
+  gap: 12px !important; /* Forces a gap between name and price */
+}
 
-/* How It Works Steps */
-.how-it-works { margin-bottom: 48px; text-align: center; }
-.how-it-works h3 { font-size: 28px; font-weight: 900; color: #1a2e12; margin-bottom: 12px; }
-.how-it-works p { color: #6b8a5e; font-size: 16px; line-height: 1.6; margin-bottom: 40px; }
-.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
-.step-card { background: #fff; padding: 24px; border-radius: 24px; border: 2px solid #e0eacb; text-align: left; box-shadow: 0 8px 24px rgba(45, 106, 31, 0.04); transition: transform 0.3s ease; }
-.step-card:hover { transform: translateY(-6px); }
-.step-num { background: #2d6a1f; color: white; width: 32px; height: 32px; display: flex; align-items: center; justifyContent: center; border-radius: 50%; font-weight: 900; margin-bottom: 16px; font-size: 15px; }
-.step-card h4 { font-size: 18px; font-weight: 800; color: #1a2e12; margin-bottom: 8px; }
-.step-card p { font-size: 14px; color: #6b8a5e; line-height: 1.5; margin: 0; }
+[style*="justify-content: space-between"] span:first-child {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Keeps name long but truncates if it hits price */
+}
 
-/* 🥗 Native Menu Styling 🥗 */
-.menu-custom-container { border: 3px solid #e0eacb; border-radius: 24px; overflow: hidden; background: #f8f9f5; box-shadow: 0 20px 50px rgba(0,0,0,0.05); padding: 32px; text-align: left; max-width: 900px; margin: 0 auto; position: relative; }
-.menu-custom-header { text-align: center; margin-bottom: 32px; border-bottom: 2px solid #e0eacb; padding-bottom: 20px; }
-.menu-icon-lg { fontSize: 32px; display: block; margin-bottom: 8px; }
-.menu-custom-header h2 { font-size: 26px; font-weight: 900; color: #1a2e12; letter-spacing: 2px; margin-bottom: 4px; text-transform: uppercase; }
-.menu-custom-header p { color: #8b211d; font-size: 12px; font-weight: 800; letter-spacing: 3px; font-family: 'Inter', sans-serif; }
-
-.menu-custom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.menu-custom-column { display: flex; flexDirection: column; gap: 20px; }
-.menu-custom-category { background: #fff; border: 1.5px solid #d4e8c8; border-radius: 16px; padding: 20px; height: auto; }
-.menu-custom-category h4 { color: #2d6a1f; font-size: 15px; font-weight: 900; margin-bottom: 12px; border-bottom: 1px dashed #d4e8c8; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-.menu-row-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 700; color: #4a633f; font-size: 14px; gap: 12px; }
-.menu-row-item span:first-child { flex: 1; }
-.menu-promo { font-size: 11px; font-weight: 800; color: #2d6a1f; text-align: center; margin-top: 8px; opacity: 0.8; }
-.menu-custom-footer { text-align: center; margin-top: 32px; font-size: 13px; font-weight: 900; color: #1a2e12; letter-spacing: 1.5px; opacity: 0.6; }
-
-/* Sticky Footer */
-.sub-sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); z-index: 100; display: flex; justify-content: center; }
-.confirm-sync-btn { background: #1a2e12; color: #fff; padding: 16px 40px; border-radius: 99px; border: none; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 12px 32px rgba(26, 46, 18, 0.3); transition: all 0.3s ease; }
-.confirm-sync-btn:hover { background: #2d6a1f; transform: translateY(-4px); box-shadow: 0 16px 40px rgba(45, 106, 31, 0.4); }
-
-/* MOBILE RESPONSIVENESS (Fixes Cutoffs) */
-@media (max-width: 768px) {
-  .menu-custom-grid { grid-template-columns: 1fr; gap: 16px; }
-  .user-overview { gap: 12px; }
-  .user-text h2 { font-size: 18px; }
-  .user-text p { font-size: 12px; }
-  .how-it-works h3 { font-size: 22px; }
-  .how-it-works p { font-size: 14px; margin-bottom: 24px; }
-  .sub-dashboard-header { padding: 16px 0; }
-  .confirm-sync-btn { width: 100%; justify-content: center; padding: 14px; }
+[style*="justify-content: space-between"] span:last-child {
+  flex-shrink: 0; /* Ensures price is never squished/cut off */
 }
 
 @media (max-width: 480px) {
-  .menu-custom-container { padding: 16px; border-radius: 16px; border: 2px solid #e0eacb; }
-  .menu-custom-header h2 { font-size: 20px; }
-  .menu-row-item { font-size: 12.5px; gap: 8px; }
-  .menu-custom-category { padding: 15px; }
-  .step-card { padding: 16px; }
+  /* Fix for main list container padding on small screens */
+  [style*="padding: 24px"] {
+    padding: 12px !important;
+  }
 }
