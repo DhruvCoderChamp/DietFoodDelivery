@@ -26,6 +26,7 @@ export default function Admin() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
+  const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const sensors = useSensors(
@@ -137,6 +138,7 @@ export default function Admin() {
 
   const handleSaveItem = async () => {
     if (!newItem.name || !newItem.price) return;
+    setIsSaving(true);
     try {
       if (editItem) {
         await authFetch(`/api/admin/products/${editItem.id}`, {
@@ -149,11 +151,16 @@ export default function Admin() {
           body: JSON.stringify(newItem)
         });
       }
-      fetchItems();
+      await fetchItems();
       setShowAddModal(false);
       setEditItem(null);
       setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
-    } catch (err) { console.error('Error saving item', err); }
+    } catch (err) { 
+      console.error('Error saving item', err); 
+      alert('Failed to save product. Please check your connection.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openEdit = (item) => {
@@ -369,9 +376,17 @@ export default function Admin() {
               {newItem.image && <img src={newItem.image} alt="preview" style={{ height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 10 }} />}
             </div>
             <div className="modal-footer">
-              <button className="btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveItem}>
-                <Check size={15} /> Save Product
+              <button className="btn-ghost" onClick={() => setShowAddModal(false)} disabled={isSaving}>Cancel</button>
+              <button 
+                className={`btn-primary ${isSaving ? 'btn-loading' : 'btn-dark-admin'}`} 
+                onClick={handleSaveItem} 
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <><RefreshCw size={15} className="spinner" /> Saving...</>
+                ) : (
+                  <><Check size={15} /> Save Product</>
+                )}
               </button>
             </div>
           </div>

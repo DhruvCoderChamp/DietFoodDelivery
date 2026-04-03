@@ -266,6 +266,51 @@
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
+/* Enhanced Contrast Form Labels */
+.admin-modal .form-label {
+  color: #111827; /* Near black for maximum readability */
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Premium Dark Button for Admin Actions */
+.btn-dark-admin {
+  background: #111827 !important; /* Deep charcoal/black */
+  color: #fff !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+}
+
+.btn-dark-admin:hover {
+  background: #000 !important;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25) !important;
+}
+
+.btn-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #4B5563 !important; /* Muted gray while saving */
+}
+
+/* Spinner Animation for Speed Feedback */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Admin Card Hover Effects for Premium Feel */
+.admin-menu-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.admin-menu-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  border-color: var(--green-main);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
 /* Mobile Header */
 .admin-mobile-header {
   display: none;
