@@ -54,6 +54,7 @@ public class SecurityConfig {
             "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
             "http://127.0.0.1:5173", "http://127.0.0.1:5174",
             "http://mymorning.in", "https://mymorning.in",
+            "http://www.mymorning.in", "https://www.mymorning.in",
             "http://5.223.60.68", "https://5.223.60.68"
         ));
         config.setAllowedHeaders(Arrays.asList("*"));

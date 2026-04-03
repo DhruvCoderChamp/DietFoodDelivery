@@ -137,18 +137,30 @@ export default function Admin() {
   };
 
   const handleSaveItem = async () => {
-    if (!newItem.name || !newItem.price) return;
+    // Robust validation for mobile users
+    if (!newItem.name) { alert("Please enter a product name."); return; }
+    if (!newItem.price) { alert("Please enter a price."); return; }
+    
     setIsSaving(true);
     try {
+      // Explicit type casting ensures compatibility with Spring Boot Double/Integer types
+      const savedPayload = {
+        ...newItem,
+        price: Number(newItem.price),
+        calories: Number(newItem.calories || 0),
+        protein: Number(newItem.protein || 0),
+        orderIndex: Number(newItem.orderIndex || 0)
+      };
+
       if (editItem) {
         await authFetch(`/api/admin/products/${editItem.id}`, {
           method: 'PUT',
-          body: JSON.stringify(newItem)
+          body: JSON.stringify(savedPayload)
         });
       } else {
         await authFetch('/api/admin/products', {
           method: 'POST',
-          body: JSON.stringify(newItem)
+          body: JSON.stringify(savedPayload)
         });
       }
       await fetchItems();
@@ -157,7 +169,7 @@ export default function Admin() {
       setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
     } catch (err) { 
       console.error('Error saving item', err); 
-      alert('Failed to save product. Please check your connection.');
+      alert('Network error while saving. Please check your signal and try again.');
     } finally {
       setIsSaving(false);
     }
@@ -376,8 +388,9 @@ export default function Admin() {
               {newItem.image && <img src={newItem.image} alt="preview" style={{ height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 10 }} />}
             </div>
             <div className="modal-footer">
-              <button className="btn-ghost" onClick={() => setShowAddModal(false)} disabled={isSaving}>Cancel</button>
+              <button type="button" className="btn-ghost" onClick={() => setShowAddModal(false)} disabled={isSaving}>Cancel</button>
               <button 
+                type="button"
                 className={`btn-primary ${isSaving ? 'btn-loading' : 'btn-dark-admin'}`} 
                 onClick={handleSaveItem} 
                 disabled={isSaving}

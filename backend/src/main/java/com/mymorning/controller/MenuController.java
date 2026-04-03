@@ -41,6 +41,17 @@ public class MenuController {
         }).orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
+    @PutMapping("/api/admin/products/reorder")
+    public List<MenuItem> reorderItems(@RequestBody List<MenuItem> items) {
+        for (MenuItem item : items) {
+            menuItemRepository.findById(item.getId()).ifPresent(dbItem -> {
+                dbItem.setOrderIndex(item.getOrderIndex());
+                menuItemRepository.save(dbItem);
+            });
+        }
+        return items;
+    }
+
     @DeleteMapping("/api/admin/products/{id}")
     public void deleteMenuItem(@PathVariable Long id) {
         menuItemRepository.deleteById(id);
