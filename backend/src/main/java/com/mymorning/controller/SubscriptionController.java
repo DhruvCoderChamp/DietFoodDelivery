@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/subscriptions")
-@CrossOrigin(origins = "*") // Adjust this as needed
 public class SubscriptionController {
 
     @Autowired
