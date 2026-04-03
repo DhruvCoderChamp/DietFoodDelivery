@@ -119,7 +119,7 @@ export default function Subscription() {
                        <p style={{ color: '#8b211d', fontSize: '12px', fontWeight: '800', letterSpacing: '3px' }}>A HEALTHY START</p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(0, 1fr))', gap: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                        {/* Column 1 */}
                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                            <div style={{ background: '#fff', border: '1.5px solid #d4e8c8', borderRadius: '16px', padding: '20px' }}>
