@@ -48,17 +48,28 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Robustly clear existing verifier to prevent SESSION_EXPIRED
+      // More thorough cleanup to fix SESSION_EXPIRED
       if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        const container = document.getElementById('recaptcha-container');
-        if (container) container.innerHTML = '';
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        window.recaptchaVerifier = null;
+      }
+      
+      const container = document.getElementById('recaptcha-container');
+      if (container) {
+          container.innerHTML = ''; // Clear div
       }
       
       const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
-        callback: () => {}
+        callback: (response) => {},
+        'expired-callback': () => {
+          setError('reCAPTCHA expired. Please try again.');
+          setLoading(false);
+        }
       });
+      
+      // Explicitly render to get a fresh session ID from Google
+      await appVerifier.render();
       window.recaptchaVerifier = appVerifier;
 
       const result = await signInWithPhoneNumber(auth, '+91' + phone, appVerifier);
