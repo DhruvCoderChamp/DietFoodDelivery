@@ -45,7 +45,7 @@ public class AuthController {
                     .id(0L)
                     .build();
 
-            String token = jwtUtils.generateToken(ADMIN_CHECK_EMAIL, "ROLE_ADMIN");
+            String token = jwtUtils.generateToken(ADMIN_CHECK_EMAIL, "ROLE_ADMIN", 0L);
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
