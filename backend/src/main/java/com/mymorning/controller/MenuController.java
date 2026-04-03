@@ -33,6 +33,10 @@ public class MenuController {
             item.setDescription(updatedItem.getDescription());
             item.setImage(updatedItem.getImage());
             item.setTags(updatedItem.getTags());
+            item.setBadge(updatedItem.getBadge());
+            item.setIsVeg(updatedItem.getIsVeg());
+            item.setIsAvailable(updatedItem.getIsAvailable());
+            item.setOrderIndex(updatedItem.getOrderIndex());
             return menuItemRepository.save(item);
         }).orElseThrow(() -> new RuntimeException("Product not found"));
     }

@@ -14,6 +14,10 @@ public class MenuItem {
     private Integer calories;
     private Integer protein;
     private String category;
+    private String badge;
+    private Boolean isVeg = true;
+    private Boolean isAvailable = true;
+    private Integer orderIndex = 0;
     
     @Column(columnDefinition="TEXT")
     private String description;
@@ -24,7 +28,7 @@ public class MenuItem {
     @ElementCollection
     private List<String> tags;
 
-    // Standard Getters/Setters to guarantee server-side compatibility
+    // Standard Getters/Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -37,6 +41,14 @@ public class MenuItem {
     public void setProtein(Integer protein) { this.protein = protein; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+    public String getBadge() { return badge; }
+    public void setBadge(String badge) { this.badge = badge; }
+    public Boolean getIsVeg() { return isVeg; }
+    public void setIsVeg(Boolean isVeg) { this.isVeg = isVeg; }
+    public Boolean getIsAvailable() { return isAvailable; }
+    public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
+    public Integer getOrderIndex() { return orderIndex; }
+    public void setOrderIndex(Integer orderIndex) { this.orderIndex = orderIndex; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
     public String getImage() { return image; }
