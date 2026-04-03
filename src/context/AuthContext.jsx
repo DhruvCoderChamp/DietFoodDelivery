@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
         headers['Content-Type'] = 'application/json';
     }
     
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, { ...options, headers, credentials: 'include' });
     if (response.status === 401) logout();
     return response;
   };

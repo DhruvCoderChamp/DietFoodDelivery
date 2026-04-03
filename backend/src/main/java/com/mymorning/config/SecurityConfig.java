@@ -49,7 +49,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(Arrays.asList("*")); // More permissive for debugging, but let's be more specific for prod
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
             "http://127.0.0.1:5173", "http://127.0.0.1:5174",

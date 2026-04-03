@@ -138,8 +138,8 @@ export default function Admin() {
 
   const handleSaveItem = async () => {
     // Robust validation for mobile users
-    if (!newItem.name) { alert("Please enter a product name."); return; }
-    if (!newItem.price) { alert("Please enter a price."); return; }
+    if (!newItem.name) { alert("ERROR: Please enter a product name."); return; }
+    if (!newItem.price) { alert("ERROR: Please enter a price."); return; }
     
     setIsSaving(true);
     try {
@@ -152,24 +152,32 @@ export default function Admin() {
         orderIndex: Number(newItem.orderIndex || 0)
       };
 
+      let res;
       if (editItem) {
-        await authFetch(`/api/admin/products/${editItem.id}`, {
+        res = await authFetch(`/api/admin/products/${editItem.id}`, {
           method: 'PUT',
           body: JSON.stringify(savedPayload)
         });
       } else {
-        await authFetch('/api/admin/products', {
+        res = await authFetch('/api/admin/products', {
           method: 'POST',
           body: JSON.stringify(savedPayload)
         });
       }
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        alert(`API ERROR: ${res.status} - ${errorText}`);
+        return;
+      }
+
       await fetchItems();
       setShowAddModal(false);
       setEditItem(null);
       setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
     } catch (err) { 
       console.error('Error saving item', err); 
-      alert('Network error while saving. Please check your signal and try again.');
+      alert('NETWORK ERROR: Connection failed. Check your signal.');
     } finally {
       setIsSaving(false);
     }
@@ -288,9 +296,27 @@ export default function Admin() {
           {/* Menu */}
           {activeTab === 'menu' && (
             <div>
+              <div className="admin-mobile-header">
+          <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
+            <MenuIcon size={24} />
+          </button>
+          <div className="mobile-header-title">Admin</div>
+          <button 
+            type="button"
+            className="mobile-add-btn" 
+            onClick={() => {
+              alert('DEBUG: Mobile Add Button Clicked');
+              setShowAddModal(true);
+              setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
+              setEditItem(null);
+            }}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
               <div className="admin-top-bar">
                 <div className="admin-page-title">Products ({items.length})</div>
-                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
+                <button className="btn-primary" onClick={() => { alert('DEBUG: Desktop Add Button Clicked'); setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
                   <Plus size={16} /> Add Product
                 </button>
               </div>
