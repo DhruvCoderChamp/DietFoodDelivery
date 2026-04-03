@@ -41,15 +41,15 @@ public class AuthController {
             User admin = User.builder()
                     .phone("ADMIN_SECURE")
                     .name("Admin")
-                    .role("admin")
+                    .role("ROLE_ADMIN")
                     .id(0L)
                     .build();
 
-            String token = jwtUtils.generateToken(email, "admin", 0L);
+            String token = jwtUtils.generateToken(ADMIN_CHECK_EMAIL, "ROLE_ADMIN");
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("role", "admin");
+            response.put("role", "ROLE_ADMIN");
             response.put("user", admin);
 
             return ResponseEntity.ok(response);
