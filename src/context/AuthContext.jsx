@@ -6,7 +6,12 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('mm_user') || 'null'));
   const [token, setToken] = useState(() => localStorage.getItem('mm_token') || null);
-  const [isAdmin, setIsAdmin] = useState(() => user?.role === 'admin');
+  const checkAdmin = (u) => {
+    const role = u?.role?.toUpperCase() || '';
+    return role === 'ADMIN' || role === 'ROLE_ADMIN';
+  };
+
+  const [isAdmin, setIsAdmin] = useState(() => checkAdmin(user));
 
   useEffect(() => {
     if (user) {
@@ -21,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const login = (data) => {
     setUser(data.user);
     setToken(data.token);
-    setIsAdmin(data.role === 'admin');
+    setIsAdmin(checkAdmin(data.user || { role: data.role }));
   };
 
   const logout = () => {
