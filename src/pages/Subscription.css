@@ -280,3 +280,37 @@
   .menu-row { grid-template-columns: 1fr 1fr; gap: 12px; }
   .user-text h2 { font-size: 20px; }
 }
+
+/* 📱 SURGICAL MOBILE FIX FOR INLINE MENU 📱 */
+@media (max-width: 480px) {
+  /* Fix for main list container padding */
+  .sub-dashboard [style*="padding: 24px"],
+  .sub-dashboard [style*="padding: 40px"] {
+    padding: 12px !important;
+  }
+
+  /* Fix for grid columns overflowing the screen */
+  .sub-dashboard [style*="grid-template-columns"] {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  /* Fix for price rows to prevent clipping */
+  .sub-dashboard [style*="justify-content: space-between"] {
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .sub-dashboard [style*="justify-content: space-between"] span:first-child {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sub-dashboard [style*="justify-content: space-between"] span:last-child {
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: right;
+  }
+}
