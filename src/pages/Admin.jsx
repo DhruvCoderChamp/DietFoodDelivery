@@ -130,6 +130,10 @@ export default function Admin() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert("IMAGE TOO LARGE: Please upload an image smaller than 3MB (High-res phone photos can be 5MB+, please crop or use a screenshot).");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => { setNewItem({ ...newItem, image: reader.result }); };
       reader.readAsDataURL(file);
