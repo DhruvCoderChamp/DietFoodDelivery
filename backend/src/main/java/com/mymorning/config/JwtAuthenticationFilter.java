@@ -26,6 +26,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // Explicitly bypass authentication logic for auth endpoints (login, OTP, etc)
+        // to prevent interference if a user has a stale/invalid token from a previous session.
+        String path = request.getServletPath();
+        if (path != null && path.startsWith("/api/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String jwt = parseJwt(request);
 
         if (jwt != null && jwtUtils.validateToken(jwt)) {

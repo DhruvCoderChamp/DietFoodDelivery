@@ -44,10 +44,6 @@ export default function Menu() {
   }, [activeCategory, activeTags, search, dbItems]);
 
   const handleAdd = (item) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     addItem(item);
     setAddedId(item.id);
     setTimeout(() => setAddedId(null), 1200);

@@ -8,11 +8,6 @@ export default function Privacy() {
   const navigate = useNavigate();
 
   const handleMailto = (e) => {
-    if (!user) {
-      e.preventDefault();
-      navigate('/login');
-      return;
-    }
     // Prevent default and use a robust trigger
     e.preventDefault();
     const mailtoUrl = "mailto:privacy@mymorning.in?subject=Privacy Query - My Morning";

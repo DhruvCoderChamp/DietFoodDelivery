@@ -7,12 +7,6 @@ export default function Terms() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleAction = (e) => {
-    if (!user) {
-      e.preventDefault();
-      navigate('/login');
-    }
-  };
   return (
     <div className="legal-page page-enter">
       <div className="legal-header">
@@ -62,7 +56,7 @@ export default function Terms() {
         <div className="legal-footer-box">
           <h3>Questions?</h3>
           <p>If you don't understand any of the above, feel free to contact us.</p>
-          <Link to="/contact" className="btn-primary" onClick={handleAction}>Message Support</Link>
+          <Link to="/contact" className="btn-primary">Message Support</Link>
         </div>
       </div>
     </div>

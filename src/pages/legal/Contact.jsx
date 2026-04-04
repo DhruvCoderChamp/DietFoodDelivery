@@ -12,17 +12,7 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
 
-  const checkAuth = (e) => {
-    if (!user) {
-      if (e) e.preventDefault();
-      navigate('/login');
-      return false;
-    }
-    return true;
-  };
-
   const triggerProtocolLink = (e, url) => {
-    if (!checkAuth(e)) return;
     e.preventDefault();
     const tempLink = document.createElement('a');
     tempLink.href = url;
@@ -75,7 +65,6 @@ export default function Contact() {
         <div className="contact-form-wrap">
           <form className="contact-form" onSubmit={(e) => {
             e.preventDefault();
-            if (!checkAuth(e)) return;
             const { name, email, message } = form;
             const body = `Name: ${name}\r\nEmail: ${email}\r\n\r\nMessage:\r\n${message}`;
             const subject = encodeURIComponent(`Contact Us - ${name}`);

@@ -16,10 +16,6 @@ const FeaturedCard = ({ item }) => {
   const navigate = useNavigate();
   
   const handleAdd = () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     addItem(item);
   };
 

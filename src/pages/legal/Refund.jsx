@@ -7,13 +7,6 @@ export default function Refund() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleAction = () => {
-    if (!user) {
-      navigate('/login');
-      return false;
-    }
-    return true;
-  };
   return (
     <div className="legal-page page-enter">
       <div className="legal-header">
@@ -75,7 +68,6 @@ export default function Refund() {
           <button 
             className="btn-primary" 
             onClick={() => {
-              if (handleAction()) {
                 const mailtoUrl = "mailto:refund@mymorning.in?subject=Refund Request - Order ID&body=Hi My Morning Team,%0D%0A%0D%0AI want to request a refund for my order.%0D%0AOrder ID: %0D%0AReason: ";
                 const tempLink = document.createElement('a');
                 tempLink.href = mailtoUrl;
@@ -83,7 +75,6 @@ export default function Refund() {
                 document.body.appendChild(tempLink);
                 tempLink.click();
                 document.body.removeChild(tempLink);
-              }
             }}>
             Request Refund
           </button>
