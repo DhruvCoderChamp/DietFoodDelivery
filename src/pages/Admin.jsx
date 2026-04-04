@@ -311,7 +311,6 @@ export default function Admin() {
             type="button"
             className="mobile-add-btn" 
             onClick={() => {
-              alert('DEBUG: Mobile Add Button Clicked');
               setShowAddModal(true);
               setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
               setEditItem(null);
@@ -322,7 +321,7 @@ export default function Admin() {
         </div>
               <div className="admin-top-bar">
                 <div className="admin-page-title">Products ({items.length})</div>
-                <button className="btn-primary" onClick={() => { alert('DEBUG: Desktop Add Button Clicked'); setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
+                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
                   <Plus size={16} /> Add Product
                 </button>
               </div>
