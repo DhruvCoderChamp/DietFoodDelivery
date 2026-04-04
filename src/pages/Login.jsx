@@ -148,6 +148,12 @@ export default function Login() {
   };
 
   const handleAdminLogin = async () => {
+    if (!adminEmail.trim() || !adminPass.trim()) {
+      setError('Please enter both email and password');
+      return;
+    }
+    setError('');
+    setLoading(true);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -158,8 +164,15 @@ export default function Login() {
         const data = await res.json();
         login(data);
         navigate('/admin');
-      } else { setError('Invalid admin credentials'); }
-    } catch (err) { setError('Failed to connect to server'); }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setError(errData.message || 'Invalid admin credentials. Check your username and password.');
+      }
+    } catch (err) {
+      setError('Failed to connect to server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpChange = (element, index) => {
@@ -209,16 +222,42 @@ export default function Login() {
             {adminMode ? (
               <div className="admin-login-fields animated-fade-in">
                 <div className="phone-input-wrap">
-                  <input type="email" placeholder="Admin Email" className="phone-input" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    placeholder="Admin Email"
+                    className={`phone-input ${error ? 'input-error' : ''}`}
+                    value={adminEmail}
+                    onChange={e => { setAdminEmail(e.target.value); setError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
+                  />
                 </div>
                 <div className="phone-input-wrap">
-                  <input type={showPass ? 'text' : 'password'} placeholder="Password" className="phone-input" value={adminPass} onChange={e => setAdminPass(e.target.value)} />
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Password"
+                    className={`phone-input ${error ? 'input-error' : ''}`}
+                    value={adminPass}
+                    onChange={e => { setAdminPass(e.target.value); setError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
+                  />
                   <button className="btn-toggle-pass" onClick={() => setShowPass(!showPass)}>
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <button className="btn-primary auth-submit" onClick={handleAdminLogin}>Access Server</button>
-                <button className="btn-text-link" onClick={() => setAdminMode(false)}>← Back to User Login</button>
+                {error && (
+                  <div className="auth-error-alert admin-error-alert">
+                    <Shield size={14} style={{ flexShrink: 0 }} />
+                    <span>{error}</span>
+                  </div>
+                )}
+                <button
+                  className="btn-primary auth-submit"
+                  onClick={handleAdminLogin}
+                  disabled={loading}
+                >
+                  {loading ? <div className="spinner-small" /> : 'Access Server'}
+                </button>
+                <button className="btn-text-link" onClick={() => { setAdminMode(false); setError(''); setAdminEmail(''); setAdminPass(''); }}>← Back to User Login</button>
               </div>
             ) : (
               <div className="user-auth-fields animated-fade-in">
