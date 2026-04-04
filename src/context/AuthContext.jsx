@@ -35,13 +35,15 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(checkAdmin(data.user || { role: data.role }));
   };
 
-  const logout = () => {
+  const logout = (isManual = true) => {
     setUser(null);
     setToken(null);
     tokenRef.current = null;
     setIsAdmin(false);
-    // Fire global event so CartContext clears cart immediately on logout
-    window.dispatchEvent(new Event('mm-logout'));
+    // ONLY clear the cart if the user intentionally clicked "Logout"
+    if (isManual) {
+      window.dispatchEvent(new Event('mm-logout'));
+    }
   };
 
   const authFetch = async (url, options = {}) => {
@@ -60,8 +62,8 @@ export const AuthProvider = ({ children }) => {
     const response = await fetch(url, { ...options, headers, credentials: 'include' });
     
     if (response.status === 401) {
-      // Token expired or missing – auto logout and redirect to login
-      logout();
+      // Token expired – logout but don't clear cart (isManual=false)
+      logout(false);
       window.location.href = '/login';
     } else if (response.status === 403) {
       console.error(`authFetch 403 Forbidden: ${options.method || 'GET'} ${url} — token present: ${!!currentToken}. This means the token exists but the role is wrong.`);

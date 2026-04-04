@@ -67,6 +67,9 @@ function AppContent() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/contact" element={<Contact />} />
+
+        {/* Catch-all route to redirect invalid URLs back home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!hideFooter && <Footer />}
     </>

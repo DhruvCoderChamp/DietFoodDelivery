@@ -98,8 +98,20 @@ public class AuthController {
         if (token == null || !token.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
         }
-        // In production, validate JWT and fetch user from DB
-        return ResponseEntity.ok(Map.of("message", "Session active"));
+        
+        try {
+            String jwt = token.substring(7);
+            if (jwtUtils.validateToken(jwt)) {
+                String phone = jwtUtils.getUsernameFromToken(jwt);
+                return userRepository.findFirstByPhone(phone)
+                        .map(user -> ResponseEntity.ok(user))
+                        .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User no longer exists")));
+            }
+        } catch (Exception e) {
+            // Ignore and fall through to 401
+        }
+        
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Session expired or invalid"));
     }
 
     private boolean isDefaultName(String name) {
