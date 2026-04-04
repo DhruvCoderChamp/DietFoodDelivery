@@ -5,6 +5,7 @@ import { Shield, Eye, EyeOff, ArrowRight, Smartphone, CheckCircle, UserCheck } f
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import logoImg from '../assets/logo.png';
 import './Login.css';
 
 export default function Login() {
@@ -194,7 +195,7 @@ export default function Login() {
       <div className="login-container unified-auth">
         <div className="login-left">
           <div className="login-brand">
-            <div className="brand-logo-circle">🥗</div>
+            <img src={logoImg} alt="My Morning" className="brand-logo-circle" style={{ width: 80, height: 80, objectFit: 'contain', borderRadius: 16, background: 'rgba(255,255,255,0.15)', padding: 8 }} />
             <h1 className="login-brand-name">My Morning</h1>
             <p className="login-brand-tag">Fresh Smarter Start</p>
           </div>

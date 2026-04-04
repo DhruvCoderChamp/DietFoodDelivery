@@ -13,7 +13,7 @@ public class JwtUtils {
 
     // In production, use a secure secret from environment variables
     private final String jwtSecret = "my-secret-key-for-my-morning-must-be-very-long-and-secure-1234567890";
-    private final int jwtExpirationMs = 3600000; // 1 hour
+    private final int jwtExpirationMs = 86400000; // 24 hours
 
     private final SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 

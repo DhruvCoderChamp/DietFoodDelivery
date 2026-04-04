@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ShoppingCart, Menu, X, User, LogOut, ChevronDown, Shield, Calendar } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.png';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -27,7 +28,7 @@ export default function Navbar() {
       <div className="navbar-inner container">
         {/* Logo */}
         <Link to="/" className="navbar-logo">
-          <div className="logo-icon">🥗</div>
+          <img src={logoImg} alt="My Morning Logo" className="logo-icon" style={{ width: 42, height: 42, objectFit: 'contain', borderRadius: 8 }} />
           <div className="logo-text">
             <span className="logo-brand">My Morning</span>
             <span className="logo-tag">A Healthy Start</span>

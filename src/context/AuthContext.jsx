@@ -60,9 +60,11 @@ export const AuthProvider = ({ children }) => {
     const response = await fetch(url, { ...options, headers, credentials: 'include' });
     
     if (response.status === 401) {
+      // Token expired or missing – auto logout and redirect to login
       logout();
+      window.location.href = '/login';
     } else if (response.status === 403) {
-      console.error(`authFetch 403 Forbidden: ${options.method || 'GET'} ${url} — token present: ${!!currentToken}`);
+      console.error(`authFetch 403 Forbidden: ${options.method || 'GET'} ${url} — token present: ${!!currentToken}. This means the token exists but the role is wrong.`);
     }
     
     return response;

@@ -7,6 +7,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import logoImg from '../assets/logo.png';
 import './Admin.css';
 
 const STATUS_COLORS = {
@@ -217,7 +218,7 @@ export default function Admin() {
         <aside className="admin-sidebar shadow-lg">
           <div className="sidebar-header">
             <div className="admin-logo">
-              <div style={{ fontSize: 24 }}>🥗</div>
+              <img src={logoImg} alt="My Morning" style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 8, background: 'rgba(255,255,255,0.1)', padding: 4 }} />
               <div>
                 <div className="admin-logo-name">My Morning</div>
                 <div className="admin-logo-tag">Admin Panel</div>
