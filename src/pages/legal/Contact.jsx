@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import logoImg from '../../assets/logo.png';
 import './Legal.css';
 
 export default function Contact() {
@@ -39,7 +40,10 @@ export default function Contact() {
           <Link to="/" className="legal-back">← Back to home</Link>
           <div className="legal-icon"><MessageSquare size={48} /></div>
           <h1 className="legal-title">Contact Us</h1>
-          <p className="legal-subtitle">We're here to help you start your morning Right. 🥗</p>
+          <p className="legal-subtitle">
+            We're here to help you start your morning Right. 
+            <img src={logoImg} alt="logo" style={{ width: 18, height: 18, marginLeft: 6, verticalAlign: 'middle' }} />
+          </p>
         </div>
       </div>
 

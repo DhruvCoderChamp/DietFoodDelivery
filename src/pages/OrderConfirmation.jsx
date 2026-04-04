@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle, Clock, MapPin, ShoppingBag, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.png';
 import './OrderConfirmation.css';
 
 const STEPS = [
@@ -167,7 +168,7 @@ export default function OrderConfirmation() {
           {/* Side Panel */}
           <div className="confirmation-side">
             <div className="conf-card message-card">
-              <div className="message-emoji">🥗</div>
+              <img src={logoImg} alt="brand" style={{ width: 44, height: 44, borderRadius: 10, margin: '0 auto 16px', display: 'block' }} />
               <h3 className="message-title">
                 {liveStatus === 'Delivered' ? 'Enjoy your meal!' : 'Your healthy breakfast is on the way!'}
               </h3>

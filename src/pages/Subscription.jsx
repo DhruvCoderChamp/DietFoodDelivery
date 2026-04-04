@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles, ArrowRight, CheckCircle, Send } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import './Subscription.css';
 
 const MASTER_IMG = 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?w=1600&h=900&fit=crop';
@@ -71,7 +72,7 @@ export default function Subscription() {
                    <img src={`https://ui-avatars.com/api/?name=${user?.name || 'U'}&background=e8f5e0&color=2d6a1f`} alt="Me" />
                 </div>
                 <div className="user-text">
-                   <h2>Great choice, {user?.name?.split(' ')[0] || 'friend'}! 🥗</h2>
+                   <h2>Great choice, {user?.name?.split(' ')[0] || 'friend'}! <img src={logoImg} alt="brand" style={{ width: 22, height: 22, verticalAlign: 'middle', marginLeft: 4 }} /></h2>
                    <p>You selected the <strong>{activePlan.days}-Day Subscription</strong>.</p>
                 </div>
              </div>
@@ -114,7 +115,7 @@ export default function Subscription() {
                     
                     {/* Header */}
                     <div style={{ textAlign: 'center', marginBottom: '32px', borderBottom: '2px solid #e0eacb', paddingBottom: '16px' }}>
-                       <span style={{ fontSize: '28px' }}>🥗</span>
+                       <img src={logoImg} alt="Brand" style={{ width: 28, height: 28, borderRadius: 6 }} />
                        <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1a2e12', letterSpacing: '2px', margin: '8px 0 4px', textTransform: 'uppercase' }}>My Morning</h2>
                        <p style={{ color: '#8b211d', fontSize: '12px', fontWeight: '800', letterSpacing: '3px' }}>A HEALTHY START</p>
                     </div>
