@@ -16,14 +16,13 @@ services:
     ports:
       - "5432:5432"
     networks:
-      backend-net:
-        ipv4_address: 172.25.0.100
+      - backend-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d mymorning"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 30s # Give PG more time to init before throwing errors
 
   backend:
     build: 
@@ -32,7 +31,7 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://172.25.0.100:5432/mymorning
+      - DB_URL=jdbc:postgresql://db:5432/mymorning
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
     ports:
@@ -62,6 +61,3 @@ services:
 networks:
   backend-net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16
