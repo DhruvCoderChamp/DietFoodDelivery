@@ -104,7 +104,7 @@ public class AuthController {
             if (jwtUtils.validateToken(jwt)) {
                 String phone = jwtUtils.getUsernameFromToken(jwt);
                 return userRepository.findFirstByPhone(phone)
-                        .map(user -> ResponseEntity.ok(user))
+                        .<ResponseEntity<?>>map(ResponseEntity::ok)
                         .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User no longer exists")));
             }
         } catch (Exception e) {

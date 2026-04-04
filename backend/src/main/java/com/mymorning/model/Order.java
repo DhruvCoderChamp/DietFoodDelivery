@@ -25,6 +25,7 @@ public class Order {
     private String phone;
     private String address;
     private Double totalAmount;
+    @Builder.Default
     private String status = "Confirmed";
     private String timeSlot;
     
