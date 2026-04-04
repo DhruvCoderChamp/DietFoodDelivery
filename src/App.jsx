@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { ProductsProvider } from './context/ProductsContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -79,7 +80,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppContent />
+          <ProductsProvider>
+            <AppContent />
+          </ProductsProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

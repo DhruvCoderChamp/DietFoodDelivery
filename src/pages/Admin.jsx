@@ -176,6 +176,8 @@ export default function Admin() {
       }
 
       await fetchItems();
+      // Invalidate shared products cache so Menu/Home see new item immediately
+      window.dispatchEvent(new Event('mm-products-updated'));
       setShowAddModal(false);
       setEditItem(null);
       setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });

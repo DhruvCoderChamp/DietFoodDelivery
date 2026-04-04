@@ -36,13 +36,26 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('mm_cart', JSON.stringify(state.items));
   }, [state.items]);
 
+  // Listen for logout event fired by AuthContext — clears cart on sign-out
+  useEffect(() => {
+    const handleLogout = () => {
+      dispatch({ type: 'CLEAR_CART' });
+      localStorage.removeItem('mm_cart');
+    };
+    window.addEventListener('mm-logout', handleLogout);
+    return () => window.removeEventListener('mm-logout', handleLogout);
+  }, []);
+
   const totalItems = state.items.reduce((acc, i) => acc + i.quantity, 0);
   const totalPrice = state.items.reduce((acc, i) => acc + i.price * i.quantity, 0);
 
   const addItem = (item) => dispatch({ type: 'ADD_ITEM', payload: item });
   const removeItem = (id) => dispatch({ type: 'REMOVE_ITEM', payload: id });
   const updateQty = (id, qty) => dispatch({ type: 'UPDATE_QTY', payload: { id, qty } });
-  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
+  const clearCart = () => {
+    dispatch({ type: 'CLEAR_CART' });
+    localStorage.removeItem('mm_cart');
+  };
 
   return (
     <CartContext.Provider value={{ items: state.items, totalItems, totalPrice, addItem, removeItem, updateQty, clearCart }}>

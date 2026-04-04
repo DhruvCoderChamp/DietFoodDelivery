@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, MapPin, Clock, Zap, Leaf, Shield, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useProducts } from '../context/ProductsContext';
 import { testimonials, deliveryAreas } from '../data/menuData';
 import './Home.css';
 
@@ -51,15 +52,9 @@ const FeaturedCard = ({ item }) => {
 };
 
 export default function Home() {
-  const [featured, setFeatured] = useState([]);
+  const { products, loading: productsLoading } = useProducts();
+  const featured = products.filter(i => i.isAvailable).slice(0, 6);
   const [showCookie, setShowCookie] = useState(() => !localStorage.getItem('mm_cookie_accepted'));
-
-  useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => setFeatured(data.filter(i => i.isAvailable).slice(0, 6)))
-      .catch(err => console.error(err));
-  }, []);
 
   const acceptCookie = () => {
     localStorage.setItem('mm_cookie_accepted', 'true');
@@ -196,7 +191,19 @@ export default function Home() {
             </Link>
           </div>
           <div className="featured-grid">
-            {featured.map(item => <FeaturedCard key={item.id} item={item} />)}
+            {productsLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="featured-card skeleton-card">
+                    <div className="skeleton-img" />
+                    <div className="featured-body" style={{ gap: 10 }}>
+                      <div className="skeleton-line" style={{ width: '70%', height: 16 }} />
+                      <div className="skeleton-line" style={{ width: '50%', height: 13 }} />
+                      <div className="skeleton-line" style={{ width: '40%', height: 14 }} />
+                    </div>
+                  </div>
+                ))
+              : featured.map(item => <FeaturedCard key={item.id} item={item} />)
+            }
           </div>
         </div>
       </section>

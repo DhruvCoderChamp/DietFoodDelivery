@@ -1,10 +1,11 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Filter, ShoppingCart, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { menuItems, categories } from '../data/menuData';
+import { useProducts } from '../context/ProductsContext';
+import { categories } from '../data/menuData';
 import './Menu.css';
 
 const TAGS = ['All', 'High Protein', 'Low Carb', 'Veg', 'Non-Veg'];
@@ -13,18 +14,12 @@ export default function Menu() {
   const { addItem, items } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [dbItems, setDbItems] = useState([]);
+  const { products, loading: productsLoading } = useProducts();
+  const dbItems = products.filter(i => i.isAvailable);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeTags, setActiveTags] = useState([]);
   const [addedId, setAddedId] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => setDbItems(data.filter(i => i.isAvailable))) // Only show available items on user menu
-      .catch(err => console.error(err));
-  }, []);
 
   const toggleTag = (tag) => {
     if (tag === 'All') return setActiveTags([]);
@@ -122,7 +117,21 @@ export default function Menu() {
         </div>
 
         {/* Grid */}
-        {filtered.length === 0 ? (
+        {productsLoading ? (
+          <div className="menu-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="menu-card skeleton-card">
+                <div className="skeleton-img" />
+                <div className="menu-card-body" style={{ gap: 10, padding: '16px' }}>
+                  <div className="skeleton-line" style={{ width: '75%', height: 18 }} />
+                  <div className="skeleton-line" style={{ width: '55%', height: 13 }} />
+                  <div className="skeleton-line" style={{ width: '40%', height: 13 }} />
+                  <div className="skeleton-line" style={{ width: '60%', height: 36, marginTop: 8, borderRadius: 10 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🍽️</div>
             <h3>No meals found</h3>

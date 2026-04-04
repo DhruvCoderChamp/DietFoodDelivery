@@ -3,8 +3,11 @@ package com.mymorning.controller;
 import com.mymorning.model.MenuItem;
 import com.mymorning.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class MenuController {
@@ -13,8 +16,11 @@ public class MenuController {
     private MenuItemRepository menuItemRepository;
 
     @GetMapping("/api/products")
-    public List<MenuItem> getAllMenuItems() {
-        return menuItemRepository.findAll();
+    public ResponseEntity<List<MenuItem>> getAllMenuItems() {
+        List<MenuItem> items = menuItemRepository.findAll();
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(30, TimeUnit.SECONDS).cachePublic())
+                .body(items);
     }
 
     @PostMapping("/api/admin/products")

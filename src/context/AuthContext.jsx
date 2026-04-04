@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     tokenRef.current = null;
     setIsAdmin(false);
+    // Fire global event so CartContext clears cart immediately on logout
+    window.dispatchEvent(new Event('mm-logout'));
   };
 
   const authFetch = async (url, options = {}) => {
