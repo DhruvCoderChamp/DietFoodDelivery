@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { categories } from '../data/menuData';
+import logoImg from '../assets/logo.png';
 import './Menu.css';
 
 const TAGS = ['All', 'High Protein', 'Low Carb', 'Veg', 'Non-Veg'];
@@ -60,7 +61,10 @@ export default function Menu() {
       <div className="menu-header">
         <div className="container">
           <h1 className="menu-page-title">Our Fresh Menu</h1>
-          <p className="menu-page-sub">Crafted daily. Delivered fresh. Choose your fuel. 🥗</p>
+          <p className="menu-page-sub">
+            Crafted daily. Delivered fresh. Choose your fuel. 
+            <img src={logoImg} alt="logo" style={{ width: 18, height: 18, marginLeft: 6, transform: 'translateY(3px)' }} />
+          </p>
         </div>
       </div>
 
@@ -133,7 +137,9 @@ export default function Menu() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">🍽️</div>
+            <div className="empty-state-icon">
+              <img src={logoImg} alt="empty" style={{ width: 44, height: 44, opacity: 0.7 }} />
+            </div>
             <h3>No meals found</h3>
             <p>Try adjusting your filters or search term</p>
           </div>

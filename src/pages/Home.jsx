@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { testimonials, deliveryAreas } from '../data/menuData';
+import logoImg from '../assets/logo.png';
 import './Home.css';
 
 const FeaturedCard = ({ item }) => {
@@ -117,7 +118,7 @@ export default function Home() {
                 className="hero-img"
               />
               <div className="hero-float hero-float-1">
-                <span>🥗</span>
+                <img src={logoImg} alt="logo" style={{ width: 28, height: 28, borderRadius: 6 }} />
                 <div>
                   <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--green-dark)' }}>Protein Bowl</span>
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>35g protein</span>

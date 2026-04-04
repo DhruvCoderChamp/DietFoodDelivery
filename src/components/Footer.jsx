@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import './Footer.css';
 
 export default function Footer() {
@@ -9,7 +10,7 @@ export default function Footer() {
       <div className="container footer-grid">
         <div className="footer-brand">
           <div className="footer-logo">
-            <span style={{ fontSize: 32 }}>🥗</span>
+            <img src={logoImg} alt="My Morning" style={{ width: 44, height: 44, borderRadius: 10 }} />
             <div>
               <div className="footer-brand-name">My Morning</div>
               <div className="footer-brand-tag">A Healthy Start</div>
