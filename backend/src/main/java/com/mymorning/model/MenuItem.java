@@ -25,7 +25,7 @@ public class MenuItem {
     @Column(columnDefinition="TEXT")
     private String image;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> tags;
 
     // Standard Getters/Setters

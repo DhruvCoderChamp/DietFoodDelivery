@@ -36,12 +36,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex, WebRequest request) {
+        // Detailed logging to help identify the root cause in server logs
+        System.err.println("Runtime Exception caught in GlobalExceptionHandler at " + LocalDateTime.now());
+        System.err.println("Path: " + request.getDescription(false));
+        System.err.println("Message: " + ex.getMessage());
+        ex.printStackTrace();
+
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        // Still logging internally could be good, but for the user:
         body.put("message", "Something went wrong. Please try again or contact support if the issue persists.");
         body.put("path", request.getDescription(false));
 
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
