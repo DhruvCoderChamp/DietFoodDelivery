@@ -25,8 +25,10 @@ public class MenuController {
                 .body(items);
     }
 
+    @Transactional
     @PostMapping("/api/admin/products")
     public MenuItem createMenuItem(@RequestBody MenuItem menuItem) {
+        System.out.println("Lead Dev Log: Attempting to create product: " + menuItem.getName());
         return menuItemRepository.save(menuItem);
     }
 

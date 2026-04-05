@@ -71,11 +71,12 @@ public class AuthController {
         }
 
         User user = userRepository.findFirstByPhone(phone).orElseGet(() -> {
-            // Create new user if not exists
+            // Lead Dev Bootstrapping: If no users exist, promote the first sign-up to 'admin'
+            long userCount = userRepository.count();
             return User.builder()
                     .phone(phone)
                     .name(name != null && !name.isBlank() ? name : "Dear Customer")
-                    .role("user")
+                    .role(userCount == 0 ? "admin" : "user")
                     .build();
         });
 
