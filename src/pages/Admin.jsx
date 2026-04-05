@@ -188,14 +188,25 @@ export default function Admin() {
         return;
       }
 
-      await fetchItems();
-      // Invalidate shared products cache so Menu/Home see new item immediately
+      const savedItem = await res.json();
+      
+      // LEAD DEV OPTIMIZATION: Update local state without fetching everything again
+      setItems(prev => {
+        if (editItem) {
+          return prev.map(i => i.id === savedItem.id ? savedItem : i);
+        } else {
+          return [...prev, savedItem].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+        }
+      });
+
+      // Broadcast global event for user menu sync
       window.dispatchEvent(new Event('mm-products-updated'));
+      
       setShowAddModal(false);
       setEditItem(null);
       setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
     } catch (err) { 
-      console.error('Error saving item', err); 
+      console.error('CRITICAL: Error saving item', err); 
       alert('NETWORK ERROR: Connection failed. Check your signal.');
     } finally {
       setIsSaving(false);

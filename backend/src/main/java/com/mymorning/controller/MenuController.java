@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -28,8 +29,9 @@ public class MenuController {
     @Transactional
     @PostMapping("/api/admin/products")
     public MenuItem createMenuItem(@RequestBody MenuItem menuItem) {
-        System.out.println("Lead Dev Log: Attempting to create product: " + menuItem.getName());
-        return menuItemRepository.save(menuItem);
+        System.out.println("LEAD DEV ACTION: Securely persisting product: " + menuItem.getName());
+        MenuItem saved = menuItemRepository.saveAndFlush(menuItem);
+        return saved;
     }
 
     @PutMapping("/api/admin/products/{id}")
@@ -64,9 +66,19 @@ public class MenuController {
 
     @Transactional
     @DeleteMapping("/api/admin/products/{id}")
-    public ResponseEntity<Void> deleteMenuItem(@PathVariable Long id) {
-        System.out.println("Lead Dev Log: Deleting product ID: " + id);
-        menuItemRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteMenuItem(@PathVariable Long id) {
+        try {
+            System.out.println("LEAD DEV ACTION: Executing hard-delete for product ID: " + id);
+            if (!menuItemRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            menuItemRepository.deleteById(id);
+            menuItemRepository.flush();
+            // Confirm the deletion to the frontend
+            return ResponseEntity.ok(Map.of("message", "Product deleted permanently", "id", id));
+        } catch (Exception e) {
+            System.err.println("CRITICAL DELETE FAILURE: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", "Database link prevented deletion."));
+        }
     }
 }
