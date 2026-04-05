@@ -10,19 +10,17 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: mymorning
     volumes:
-      # Host-bind mount: data lives directly on the server disk at this path.
-      # This survives BOTH 'docker-compose down' AND 'docker-compose down -v'.
-      - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - backend-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d mymorning"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 30s # Give PG more time to init before throwing errors
+      retries: 10
+      start_period: 30s
 
   backend:
     build: 
@@ -40,7 +38,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      backend-net:
+      - backend-net
 
   frontend:
     build:
@@ -56,11 +54,8 @@ services:
     depends_on:
       - backend
     networks:
-      backend-net:
+      - backend-net
 
 networks:
   backend-net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16

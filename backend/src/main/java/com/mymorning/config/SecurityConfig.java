@@ -12,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -43,22 +42,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedEntryPoint()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.OPTIONS, "/**")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/auth/**")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/health")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/products/**")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/products")).permitAll()
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/admin/**")).hasRole("ADMIN")
-                .requestMatchers(AntPathRequestMatcher.antMatcher("/api/orders/**")).hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated()
-            );
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedEntryPoint()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(AntPathRequestMatcher.antMatcher(HttpMethod.OPTIONS, "/**")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/auth/**")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/health")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/products/**")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/products")).permitAll()
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/admin/**")).hasRole("ADMIN")
+                        .requestMatchers(AntPathRequestMatcher.antMatcher("/api/orders/**")).hasAnyRole("USER", "ADMIN")
+                        .anyRequest().authenticated());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 
@@ -67,16 +65,15 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
-            "http://127.0.0.1:5173", "http://127.0.0.1:5174",
-            "http://mymorning.in", "https://mymorning.in",
-            "http://www.mymorning.in", "https://www.mymorning.in",
-            "http://5.223.60.68", "https://5.223.60.68"
-        ));
+                "http://localhost:5173", "http://localhost:5174", "http://localhost:5175",
+                "http://127.0.0.1:5173", "http://127.0.0.1:5174",
+                "http://mymorning.in", "https://mymorning.in",
+                "http://www.mymorning.in", "https://www.mymorning.in",
+                "http://5.223.60.68", "https://5.223.60.68"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
