@@ -62,8 +62,11 @@ public class MenuController {
         return items;
     }
 
+    @Transactional
     @DeleteMapping("/api/admin/products/{id}")
-    public void deleteMenuItem(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMenuItem(@PathVariable Long id) {
+        System.out.println("Lead Dev Log: Deleting product ID: " + id);
         menuItemRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

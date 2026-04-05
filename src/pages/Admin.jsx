@@ -110,11 +110,23 @@ export default function Admin() {
   ];
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this item?')) {
+    if (window.confirm('LEAD DEV SECURE ACTION: Permanent deletion of this product. Proceed?')) {
+      // OPTIMISTIC UI: Remove item instantly from local state
+      const originalItems = [...items];
+      setItems(prev => prev.filter(item => item.id !== id));
+      
       try {
-        await authFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-        fetchItems();
-      } catch (err) { console.error('Error deleting', err); }
+        const res = await authFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Delete failed on server');
+        
+        // Success: Trigger cache invalidation for the rest of the app
+        window.dispatchEvent(new Event('mm-products-updated'));
+      } catch (err) { 
+        console.error('CRITICAL: Error deleting product', err); 
+        alert('NETWORK ERROR: Could not sync deletion. Restoring item.');
+        // ROLLBACK: Restore items if the API call fails
+        setItems(originalItems);
+      }
     }
   };
 
