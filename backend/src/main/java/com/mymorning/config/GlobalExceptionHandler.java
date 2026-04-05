@@ -24,11 +24,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
-    public ResponseEntity<?> handleDatabaseException(org.springframework.dao.DataAccessException ex, WebRequest request) {
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<?> handleDatabaseException(DataAccessException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Our system is temporarily busy due to high demand. Please refresh the page or try again in a few seconds.");
+        body.put("message", "Our system is temporarily busy due to high demand. Please try again in a few moments.");
         body.put("path", request.getDescription(false));
 
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
