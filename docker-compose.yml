@@ -6,11 +6,10 @@ services:
     container_name: mm_postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: mymorning
-      # Allows backend to connect without password mismatch if already initialized
-      POSTGRES_HOST_AUTH_METHOD: trust
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=mymorning
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
