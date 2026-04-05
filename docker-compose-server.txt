@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: mymorning
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       # Host-bind mount: data lives directly on the server disk at this path.
       # This survives BOTH 'docker-compose down' AND 'docker-compose down -v'.
