@@ -9,6 +9,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.dao.DataAccessException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
