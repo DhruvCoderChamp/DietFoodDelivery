@@ -17,18 +17,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "An unexpected error occurred");
-        body.put("details", ex.getMessage());
+        body.put("message", "Our servers are experiencing high traffic. Please try again in a moment.");
         body.put("path", request.getDescription(false));
 
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
+    public ResponseEntity<?> handleDatabaseException(org.springframework.dao.DataAccessException ex, WebRequest request) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", "Our system is temporarily busy due to high demand. Please refresh the page or try again in a few seconds.");
+        body.put("path", request.getDescription(false));
+
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex, WebRequest request) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", ex.getMessage());
+        // Still logging internally could be good, but for the user:
+        body.put("message", "Something went wrong. Please try again or contact support if the issue persists.");
         body.put("path", request.getDescription(false));
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);

@@ -114,7 +114,8 @@ export default function Login() {
           setLoading(false);
         }
       } else {
-        setError('Verification failed on our servers.');
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Server is busy. Please try again in 5 seconds.');
         setLoading(false);
       }
     } catch(err) {
@@ -139,11 +140,12 @@ export default function Login() {
         login(data);
         navigate('/');
       } else {
-        setError('Failed to update details.');
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Server is busy. Please try again in 5 seconds.');
       }
       setLoading(false);
     } catch(err) {
-      setError('Server connection error.');
+      setError('Connection lost. Please check your data/wifi and try again.');
       setLoading(false);
     }
   };
