@@ -110,7 +110,7 @@ export default function Admin() {
   ];
 
   const handleDelete = async (id) => {
-    if (window.confirm('LEAD DEV SECURE ACTION: Permanent deletion of this product. Proceed?')) {
+    if (window.confirm('Permanent deletion of this product. Proceed?')) {
       // OPTIMISTIC UI: Remove item instantly from local state
       const originalItems = [...items];
       setItems(prev => prev.filter(item => item.id !== id));
