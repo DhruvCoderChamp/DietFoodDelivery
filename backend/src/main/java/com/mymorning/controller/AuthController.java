@@ -33,8 +33,8 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<?> adminLogin(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
+        String email = credentials.get("email") != null ? credentials.get("email").trim() : null;
+        String password = credentials.get("password") != null ? credentials.get("password").trim() : null;
 
         if (ADMIN_CHECK_EMAIL.equals(email) && ADMIN_CHECK_PASS.equals(password)) {
             // Mock Admin User for token generation
