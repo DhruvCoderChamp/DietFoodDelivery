@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, LocateFixed, Clock, User, Phone, Home, ChevronRight } from 'lucide-react';
+import { MapPin, LocateFixed, Clock, User, Phone, Home, ChevronRight, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import './Checkout.css';
