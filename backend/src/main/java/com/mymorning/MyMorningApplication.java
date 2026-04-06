@@ -17,16 +17,16 @@ public class MyMorningApplication {
         SpringApplication.run(MyMorningApplication.class, args);
     }
 
-/*
     @PostConstruct
-    public void init() {
+    public void cleanupDatabase() {
         try {
-            // Automatically upgrades the image column to unbounded TEXT size when Spring Boots
-            jdbcTemplate.execute("ALTER TABLE menu_item ALTER COLUMN image TYPE TEXT;");
-            System.out.println("---- Database image column fully upgraded for base64 limits! ----");
-        } catch(Exception e) {
-            // Ignore if already text type or table missing during initial create
+            // SECURITY: Ensure no phone sign-up keeps administrative privileges
+            // and demote any previously accidental admins to 'user'
+            jdbcTemplate.execute("UPDATE users SET role = 'user' WHERE role = 'admin';");
+            System.out.println("---- SECURITY: Existing admin accounts have been demoted to 'user' ----");
+        } catch (Exception e) {
+            // Handle cases where the table might not exist yet during initial boot
+            System.out.println("---- CLEANUP: Database table not ready yet; skipping demotion ----");
         }
     }
-*/
 }
