@@ -17,8 +17,8 @@ export default function Footer() {
             </div>
           </div>
           <p className="footer-desc">
-            Bangalore's freshest healthy breakfast delivery service. 
-            Fuel your day with real food, real nutrition, delivered to your door by 9 AM.
+            Bangalore's freshest healthy meal delivery service. 
+            Fuel your day with real nutrition, delivered to your door in 30 minutes.
           </p>
           <div className="footer-contact">
             <a href="tel:+919187532042" className="footer-contact-item">
@@ -55,10 +55,10 @@ export default function Footer() {
         </div>
 
         <div className="footer-col">
-          <div className="footer-col-title">Morning Slot</div>
+          <div className="footer-col-title">Delivery Slots</div>
           <div className="footer-slot">
-            <div className="slot-time">🌅 6 AM – 9 AM</div>
-            <p className="footer-slot-desc">Fresh morning delivery daily. Subscribe for guaranteed slots.</p>
+            <div className="slot-time">⚡ 6 AM – 10 PM</div>
+            <p className="footer-slot-desc">Fresh meals delivered in 30 minutes daily across Whitefield.</p>
           </div>
           <div className="footer-col-title" style={{ marginTop: 20 }}>Follow Us</div>
           <div className="social-links">

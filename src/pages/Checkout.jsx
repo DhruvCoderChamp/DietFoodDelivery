@@ -18,10 +18,26 @@ export default function Checkout() {
     phone: user?.phone || '', 
     address: '', 
     area: '', 
-    instructions: '' 
+    instructions: '',
+    timeSlot: 'ASAP (Within 30 mins)'
   });
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Generate time slots from 6 AM to 10 PM
+  const generateTimeSlots = () => {
+    const slots = ['ASAP (Within 30 mins)'];
+    for (let hour = 6; hour <= 21; hour++) {
+      const displayHour = hour > 12 ? hour - 12 : hour;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      slots.push(`${displayHour}:00 ${ampm}`);
+      slots.push(`${displayHour}:30 ${ampm}`);
+    }
+    slots.push('10:00 PM');
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   const detectLocation = () => {
     setLocating(true);
@@ -124,7 +140,7 @@ export default function Checkout() {
           address: form.address,
           items: items.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image })),
           totalAmount: total,
-          timeSlot: 'Morning',
+          timeSlot: form.timeSlot,
           status: 'Confirmed'
         })
       });
@@ -164,6 +180,9 @@ export default function Checkout() {
       `${pureAddress}  `,
       form.area ? `Area: ${form.area}  ` : null,
       form.instructions ? `Note: ${form.instructions}  ` : null,
+      ``,
+      `🕒 *Delivery Slot:* ${form.timeSlot} ⚡`,
+      `*(Guaranteed delivery within 30 mins)*`,
       ``,
       locationLink ? `📌 *Location:*  \n${locationLink}` : null,
       locationLink ? `` : null,
@@ -252,15 +271,28 @@ export default function Checkout() {
                 rows={3} style={{ resize: 'vertical' }} />
               {errors.address && <span className="error-msg">{errors.address}</span>}
             </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="checkout-area">Area</label>
-              <select id="checkout-area" className="form-input" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))}>
-                <option value="">Select delivery area</option>
-                {['Whitefield', 'Whitefield (AECS Layout)', 'Whitefield (Brookefield)', 'Whitefield (Hope Farm)'].map(a => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
+            
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 1.5 }}>
+                <label className="form-label" htmlFor="checkout-area">Area</label>
+                <select id="checkout-area" className="form-input" value={form.area} onChange={e => setForm(f => ({ ...f, area: e.target.value }))}>
+                  <option value="">Select delivery area</option>
+                  {['Whitefield', 'Whitefield (AECS Layout)', 'Whitefield (Brookefield)', 'Whitefield (Hope Farm)'].map(a => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label" htmlFor="checkout-time"><Clock size={13} /> Delivery Time</label>
+                <select id="checkout-time" className="form-input" value={form.timeSlot} onChange={e => setForm(f => ({ ...f, timeSlot: e.target.value }))}>
+                  {timeSlots.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+
             <div className="form-group">
               <label className="form-label" htmlFor="checkout-instructions">Delivery Instructions (Optional)</label>
               <input id="checkout-instructions" className="form-input" placeholder="e.g., Ring the bell, leave at door..."
@@ -268,12 +300,12 @@ export default function Checkout() {
             </div>
 
             {/* ETA */}
-            <div className="eta-card">
-              <Clock size={20} className="eta-icon" />
+            <div className="eta-card" style={{ border: '2px solid var(--green-main)', background: '#f0f9eb' }}>
+              <Zap size={20} className="eta-icon" style={{ color: 'var(--green-main)' }} />
               <div>
-                <div className="eta-title">Estimated Delivery Time</div>
-                <div className="eta-time">Tomorrow, 7:00 AM – 8:00 AM</div>
-                <div className="eta-sub">Fresh preparation starts at 5 AM 🌅</div>
+                <div className="eta-title" style={{ color: 'var(--green-dark)' }}>⚡ 30-Minute Delivery Promise</div>
+                <div className="eta-time">{form.timeSlot === 'ASAP (Within 30 mins)' ? 'Arriving within 30 minutes!' : `Delivery by ${form.timeSlot} + 30 mins`}</div>
+                <div className="eta-sub">Freshly prepared & dispatched instantly 🚀</div>
               </div>
             </div>
 

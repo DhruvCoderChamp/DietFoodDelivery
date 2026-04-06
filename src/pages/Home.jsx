@@ -78,8 +78,8 @@ export default function Home() {
               <br />Healthy, Protein-Rich Meals
             </h1>
             <p className="hero-desc">
-              Freshly prepared every morning. Delivered to your door by 9 AM. 
-              Fitness-first food for Bangalore's go-getters.
+              Freshly prepared meals. Delivered in 30 minutes. 
+              Available 6 AM – 10 PM. Fitness-first food for Bangalore's go-getters.
             </p>
             <div className="hero-ctas">
               <Link to="/menu" className="btn-primary hero-cta-main">
@@ -101,8 +101,8 @@ export default function Home() {
               </div>
               <div className="stat-divider"></div>
               <div className="stat">
-                <span className="stat-num">₹50</span>
-                <span className="stat-lbl">Starts From</span>
+                <span className="stat-num">30m</span>
+                <span className="stat-lbl">Fast Delivery</span>
               </div>
             </div>
           </div>
@@ -121,8 +121,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="hero-float hero-float-2">
-                <Clock size={16} color="var(--green-main)" />
-                <span style={{ fontWeight: 600, fontSize: 13 }}>Delivered by 9 AM</span>
+                <Zap size={16} color="var(--green-main)" />
+                <span style={{ fontWeight: 600, fontSize: 13 }}>30 Min Delivery</span>
               </div>
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function Home() {
               { icon: '🛒', title: 'Pick Your Meal', desc: 'Browse our fresh menu and add items to cart' },
               { icon: '📍', title: 'Set Location', desc: 'Auto-detect your GPS or enter address manually' },
               { icon: '💳', title: 'Pay Securely', desc: 'UPI, Card, or Cash on Delivery — your choice' },
-              { icon: '🚚', title: 'Fresh Delivery', desc: 'Hot & healthy breakfast at your door by 9 AM' },
+              { icon: '🚚', title: '30 Min Delivery', desc: 'Fresh & healthy breakfast at your door in 30 mins' },
             ].map((step, i) => (
               <div className="how-card" key={i}>
                 <div className="how-icon">{step.icon}</div>
@@ -220,7 +220,7 @@ export default function Home() {
                 {[
                   { icon: <Zap size={20} />, title: 'Macro-Balanced', desc: 'Every meal is nutritionist-designed for the right protein, carbs & fats' },
                   { icon: <Leaf size={20} />, title: 'Farm Fresh', desc: 'Ingredients sourced from trusted local farms, no preservatives' },
-                  { icon: <Clock size={20} />, title: 'Morning Slots', desc: 'Delivery between 6 AM – 9 AM so you\'re fueled for work' },
+                  { icon: <Clock size={20} />, title: 'Full Day Delivery', desc: 'Order anytime between 6 AM – 10 PM. Delivered in 30 mins.' },
                   { icon: <Shield size={20} />, title: 'Quality Promise', desc: 'FSSAI certified kitchen, hygiene standards you can trust' },
                 ].map((f, i) => (
                   <div className="why-feature" key={i}>
@@ -236,8 +236,8 @@ export default function Home() {
             <div className="why-img-wrap">
               <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80" alt="Healthy meal prep" className="why-img" />
               <div className="why-badge">
-                <span className="why-badge-num">100+</span>
-                <span className="why-badge-txt">Orders / Day</span>
+                <span className="why-badge-num">500+</span>
+                <span className="why-badge-txt">Happy Users</span>
               </div>
             </div>
           </div>
@@ -278,7 +278,7 @@ export default function Home() {
             <h2 className="section-title">We Deliver Across Bangalore</h2>
             <p className="section-subtitle" style={{ margin: '12px auto 0' }}>
               <MapPin size={14} style={{ display: 'inline', marginRight: 4 }} />
-              Currently serving these areas with morning delivery (6 AM – 9 AM)
+              Currently serving: 6 AM – 10 PM (30 Min Delivery)
             </p>
           </div>
           <div className="delivery-areas">

@@ -33,7 +33,7 @@ export default function Cart() {
       <div className="cart-header">
         <div className="container">
           <h1 className="cart-title">Your Cart</h1>
-          <p className="cart-sub">{totalItems} item{totalItems !== 1 ? 's' : ''} • Morning delivery slot</p>
+          <p className="cart-sub">{totalItems} item{totalItems !== 1 ? 's' : ''} • Delivery Slot Selection</p>
         </div>
       </div>
 
@@ -98,15 +98,10 @@ export default function Cart() {
             </div>
 
             <div className="slot-picker">
-              <div className="slot-label">🕕 Morning Delivery Slot</div>
-              <div className="slot-options">
-                {['6 AM – 7 AM', '7 AM – 8 AM', '8 AM – 9 AM'].map(slot => (
-                  <label key={slot} className="slot-option">
-                    <input type="radio" name="slot" defaultChecked={slot === '7 AM – 8 AM'} />
-                    {slot}
-                  </label>
-                ))}
-              </div>
+              <div className="slot-label">🕒 Delivery Hours: 6 AM – 10 PM</div>
+              <p style={{ fontSize: '12px', color: '#6b8a5e', margin: '4px 0 12px' }}>
+                Pick your exact slot on the next page. <strong>30-minute delivery promise! ⚡</strong>
+              </p>
             </div>
 
             <button className="btn-primary checkout-btn" onClick={() => navigate('/checkout')}>
