@@ -16,19 +16,27 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobalException(Exception ex, WebRequest request) {
+        // Detailed logging to help identify the root cause in server logs
+        System.err.println("Global Exception caught: " + ex.getMessage());
+        ex.printStackTrace();
+
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Our servers are experiencing high traffic. Please try again in a moment.");
+        body.put("message", "Internal server error. Details: " + ex.getMessage());
         body.put("path", request.getDescription(false));
 
-        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<?> handleDatabaseException(DataAccessException ex, WebRequest request) {
+        // Detailed logging for DB issues
+        System.err.println("Database Access Exception: " + ex.getMessage());
+        ex.printStackTrace();
+
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Our system is temporarily busy due to high demand. Please try again in a few moments.");
+        body.put("message", "Database service is temporarily unavailable or error occurred: " + ex.getMessage());
         body.put("path", request.getDescription(false));
 
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
@@ -36,15 +44,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex, WebRequest request) {
-        // Detailed logging to help identify the root cause in server logs
-        System.err.println("Runtime Exception caught in GlobalExceptionHandler at " + LocalDateTime.now());
-        System.err.println("Path: " + request.getDescription(false));
-        System.err.println("Message: " + ex.getMessage());
+        // Detailed logging
+        System.err.println("Runtime Exception caught: " + ex.getMessage());
         ex.printStackTrace();
 
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("message", "Something went wrong. Please try again or contact support if the issue persists.");
+        body.put("message", "Something went wrong: " + ex.getMessage());
         body.put("path", request.getDescription(false));
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
