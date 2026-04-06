@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: mymorning
+      POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       # Host-bind mount: data lives directly on the server disk at this path.
@@ -19,7 +19,7 @@ services:
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mymorning"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,7 +32,7 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://db:5432/mymorning
+      - DB_URL=jdbc:postgresql://db:5432/postgres
       - DB_USERNAME=postgres
       - DB_PASSWORD=root
     ports:
