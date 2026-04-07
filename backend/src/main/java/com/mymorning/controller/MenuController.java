@@ -43,8 +43,8 @@ public class MenuController {
                         .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
                         .body(decodedBytes);
             }
-            return ResponseEntity.notFound().build();
-        }).orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.<byte[]>notFound().build();
+        }).orElse(ResponseEntity.<byte[]>notFound().build());
     }
 
     @Transactional
