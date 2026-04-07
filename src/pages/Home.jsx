@@ -22,7 +22,12 @@ const FeaturedCard = ({ item }) => {
   return (
     <div className="featured-card">
       <div className="featured-img-wrap">
-        <img src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'} alt={item.name} className="featured-img" loading="lazy" />
+        <img 
+          src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+          alt={item.name} 
+          className="featured-img" 
+          loading="lazy" 
+        />
         <span className={`featured-badge badge ${item.badge === 'High Protein' ? 'badge-red' : 'badge-green'}`}>{item.badge}</span>
       </div>
       <div className="featured-body">

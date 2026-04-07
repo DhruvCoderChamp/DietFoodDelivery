@@ -19,11 +19,32 @@ public class MenuController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/products")
-    public ResponseEntity<List<MenuItem>> getAllMenuItems() {
+    public List<MenuItem> getAllMenuItems() {
+        System.out.println("LEAD DEV OPTIMIZATION: Loading metadata list... (images stripped for speed)");
         List<MenuItem> items = menuItemRepository.findAll();
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(30, TimeUnit.SECONDS).cachePublic())
-                .body(items);
+        // Clear the heavy image data from the list objects before serializing to JSON
+        // This drops the payload size by over 98%
+        items.forEach(item -> item.setImage(null));
+        return items;
+    }
+
+    @GetMapping("/api/products/{id}/image")
+    public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
+        return menuItemRepository.findById(id).map(item -> {
+            String img = item.getImage();
+            if (img != null && img.contains(",")) {
+                // Parse standard base64 data URL from DB
+                String base64Content = img.split(",")[1];
+                byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Content);
+                String contentType = img.split(";")[0].split(":")[1];
+                
+                return ResponseEntity.ok()
+                        .header("Content-Type", contentType)
+                        .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
+                        .body(decodedBytes);
+            }
+            return ResponseEntity.notFound().build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @Transactional

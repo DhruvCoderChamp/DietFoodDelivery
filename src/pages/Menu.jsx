@@ -147,7 +147,12 @@ export default function Menu() {
               return (
                 <div className="menu-card" key={item.id}>
                   <div className="menu-card-img-wrap">
-                    <img src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'} alt={item.name} className="menu-card-img" loading="lazy" />
+                    <img 
+                      src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+                      alt={item.name} 
+                      className="menu-card-img" 
+                      loading="lazy" 
+                    />
                     <span className={`badge ${item.badge === 'High Protein' || item.badge === 'Max Protein' ? 'badge-red' : item.badge === 'Trending' || item.badge === 'New' ? 'badge-orange' : 'badge-green'} menu-badge`}>
                       {item.badge}
                     </span>

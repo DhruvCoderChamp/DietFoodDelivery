@@ -465,7 +465,13 @@ export default function Admin() {
                   <input className="form-input" placeholder="https://..." value={newItem.image} onChange={e => setNewItem(p => ({ ...p, image: e.target.value }))} />
                 </div>
               </div>
-              {newItem.image && <img src={newItem.image} alt="preview" style={{ height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 10 }} />}
+              {(newItem.image || (editItem && editItem.id)) && (
+                <img 
+                  src={newItem.image || `/api/products/${editItem.id}/image`} 
+                  alt="preview" 
+                  style={{ height: 100, width: 100, objectFit: 'cover', borderRadius: 8, marginTop: 10 }} 
+                />
+              )}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn-ghost" onClick={() => setShowAddModal(false)} disabled={isSaving}>Cancel</button>
@@ -576,7 +582,11 @@ function SortableItem(props) {
         <div className="drag-handle" {...attributes} {...listeners} style={{ position: 'absolute', top: 10, left: 10, zIndex: 5, background: 'rgba(255,255,255,0.9)', padding: 4, borderRadius: 6, cursor: 'grab', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <GripVertical size={16} />
         </div>
-        <img src={props.item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'} alt={props.item.name} className="admin-menu-img" />
+        <img 
+          src={props.item.image || (props.item.id ? `/api/products/${props.item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+          alt={props.item.name} 
+          className="admin-menu-img" 
+        />
         <div className="admin-menu-body">
           <div className="admin-menu-name">{props.item.name}</div>
           <div className="admin-menu-meta">₹{props.item.price} · {props.item.category}</div>

@@ -53,7 +53,11 @@ export default function Cart() {
 
             {items.map(item => (
               <div className="cart-item" key={item.id}>
-                <img src={item.image} alt={item.name} className="cart-item-img" />
+                <img 
+                  src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+                  alt={item.name} 
+                  className="cart-item-img" 
+                />
                 <div className="cart-item-info">
                   <div className="cart-item-name">{item.name}</div>
                   <div className="cart-item-meta">
