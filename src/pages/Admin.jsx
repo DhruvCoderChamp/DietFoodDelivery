@@ -143,12 +143,37 @@ export default function Admin() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        alert("IMAGE TOO LARGE: Please upload an image smaller than 3MB (High-res phone photos can be 5MB+, please crop or use a screenshot).");
+      if (file.size > 10 * 1024 * 1024) { // Increase limit slightly as we compress now
+        alert("IMAGE TOO LARGE: Please upload an image smaller than 10MB.");
         return;
       }
+      
       const reader = new FileReader();
-      reader.onloadend = () => { setNewItem({ ...newItem, image: reader.result }); };
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // LEAD DEV COMPRESSION ENGINE
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_WIDTH = 800; // Optimal for web display
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Export high-quality but compressed JPEG (smaller than PNG for food photos)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75); 
+          setNewItem({ ...newItem, image: dataUrl });
+        };
+        img.src = event.target.result;
+      };
       reader.readAsDataURL(file);
     }
   };
