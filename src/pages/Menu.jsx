@@ -140,55 +140,65 @@ export default function Menu() {
             <p>Try adjusting your filters or search term</p>
           </div>
         ) : (
-          <div className="menu-grid">
-            {filtered.map(item => {
-              const qty = getQtyInCart(item.id);
-              const added = addedId === item.id;
-              return (
-                <div className="menu-card" key={item.id}>
-                  <div className="menu-card-img-wrap">
-                    <img 
-                      src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
-                      alt={item.name} 
-                      className="menu-card-img" 
-                      loading="lazy" 
-                    />
-                    <span className={`badge ${item.badge === 'High Protein' || item.badge === 'Max Protein' ? 'badge-red' : item.badge === 'Trending' || item.badge === 'New' ? 'badge-orange' : 'badge-green'} menu-badge`}>
-                      {item.badge}
-                    </span>
-                    {qty > 0 && <div className="in-cart-tag">✓ {qty} in cart</div>}
-                  </div>
-                  <div className="menu-card-body">
-                    <div className="menu-card-top">
-                      <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
-                      <div className="menu-rating">
-                        <Star size={12} fill="#f39c12" stroke="#f39c12" />
-                        <span>{item.rating}</span>
-                        <span className="review-count">({item.reviews})</span>
+          <>
+            <div className="menu-grid">
+              {filtered.map(item => {
+                const qty = getQtyInCart(item.id);
+                const added = addedId === item.id;
+                return (
+                  <div className="menu-card" key={item.id}>
+                    <div className="menu-card-img-wrap">
+                      <img 
+                        src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+                        alt={item.name} 
+                        className="menu-card-img" 
+                        loading="lazy" 
+                      />
+                      <span className={`badge ${item.badge === 'High Protein' || item.badge === 'Max Protein' ? 'badge-red' : item.badge === 'Trending' || item.badge === 'New' ? 'badge-orange' : 'badge-green'} menu-badge`}>
+                        {item.badge}
+                      </span>
+                      {qty > 0 && <div className="in-cart-tag">✓ {qty} in cart</div>}
+                    </div>
+                    <div className="menu-card-body">
+                      <div className="menu-card-top">
+                        <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
+                        <div className="menu-rating">
+                          <Star size={12} fill="#f39c12" stroke="#f39c12" />
+                          <span>4.8</span>
+                        </div>
+                      </div>
+                      <h3 className="menu-card-name">{item.name}</h3>
+                      <p className="menu-card-desc">{item.description}</p>
+                      <div className="menu-macro-row">
+                        <span className="macro">🔥 {item.calories} kcal</span>
+                        <span className="macro">💪 {item.protein}g protein</span>
+                      </div>
+                      <div className="menu-card-footer">
+                        <span className="menu-price">₹{item.price}</span>
+                        <button
+                          className={`add-btn ${added ? 'add-btn-added' : ''}`}
+                          onClick={() => handleAdd(item)}
+                          id={`add-${item.id}`}
+                          disabled={!item.isAvailable}
+                        >
+                          {added ? '✓ Added!' : (!item.isAvailable ? 'Out of Stock' : '+ Add to Cart')}
+                        </button>
                       </div>
                     </div>
-                    <h3 className="menu-card-name">{item.name}</h3>
-                    <p className="menu-card-desc">{item.description}</p>
-                    <div className="menu-macro-row">
-                      <span className="macro">🔥 {item.calories} kcal</span>
-                      <span className="macro">💪 {item.protein}g protein</span>
-                    </div>
-                    <div className="menu-card-footer">
-                      <span className="menu-price">₹{item.price}</span>
-                      <button
-                        className={`add-btn ${added ? 'add-btn-added' : ''}`}
-                        onClick={() => handleAdd(item)}
-                        id={`add-${item.id}`}
-                        disabled={!item.isAvailable}
-                      >
-                        {added ? '✓ Added!' : (!item.isAvailable ? 'Out of Stock' : '+ Add to Cart')}
-                      </button>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {/* PAGINATION: Load More */}
+            {hasMore && !productsLoading && (
+              <div className="pagination-wrap" style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
+                <button className="btn-outline load-more-btn" onClick={loadMore}>
+                   See More Delicious Meals
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

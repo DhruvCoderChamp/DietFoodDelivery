@@ -7,6 +7,9 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -19,13 +22,25 @@ public class MenuController {
 
     @Transactional(readOnly = true)
     @GetMapping("/api/products")
-    public List<MenuItem> getAllMenuItems() {
+    public ResponseEntity<?> getAllMenuItems(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
+            
         System.out.println("LEAD DEV OPTIMIZATION: Loading metadata list... (images stripped for speed)");
-        List<MenuItem> items = menuItemRepository.findAll();
-        // Clear the heavy image data from the list objects before serializing to JSON
-        // This drops the payload size by over 98%
-        items.forEach(item -> item.setImage(null));
-        return items;
+        
+        if (page != null) {
+            // Paginated request
+            Page<MenuItem> itemPage = menuItemRepository.findAll(
+                PageRequest.of(page, size, Sort.by("orderIndex").ascending())
+            );
+            itemPage.getContent().forEach(item -> item.setImage(null));
+            return ResponseEntity.ok(itemPage);
+        } else {
+            // Legacy/Full list request
+            List<MenuItem> items = menuItemRepository.findAll(Sort.by("orderIndex").ascending());
+            items.forEach(item -> item.setImage(null));
+            return ResponseEntity.ok(items);
+        }
     }
 
     @GetMapping("/api/products/{id}/image")
