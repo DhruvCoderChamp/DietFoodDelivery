@@ -30,21 +30,24 @@ public class MenuController {
 
     @GetMapping("/api/products/{id}/image")
     public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
-        return menuItemRepository.findById(id).map(item -> {
+        MenuItem item = menuItemRepository.findById(id).orElse(null);
+        if (item == null || item.getImage() == null || !item.getImage().contains(",")) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
             String img = item.getImage();
-            if (img != null && img.contains(",")) {
-                // Parse standard base64 data URL from DB
-                String base64Content = img.split(",")[1];
-                byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Content);
-                String contentType = img.split(";")[0].split(":")[1];
-                
-                return ResponseEntity.ok()
-                        .header("Content-Type", contentType)
-                        .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
-                        .body(decodedBytes);
-            }
-            return ResponseEntity.<byte[]>notFound().build();
-        }).orElse(ResponseEntity.<byte[]>notFound().build());
+            String base64Content = img.split(",")[1];
+            byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Content);
+            String contentType = img.split(";")[0].split(":")[1];
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", contentType)
+                    .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
+                    .body(decodedBytes);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @Transactional
