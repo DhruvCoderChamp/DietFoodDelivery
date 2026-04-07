@@ -15,7 +15,7 @@ export default function Menu() {
   const { addItem, items } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { products, loading: productsLoading } = useProducts();
+  const { products, loading: productsLoading, hasMore, loadMore } = useProducts();
   const dbItems = products.filter(i => i.isAvailable);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
