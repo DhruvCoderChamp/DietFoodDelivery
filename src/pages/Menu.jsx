@@ -149,7 +149,7 @@ export default function Menu() {
                   <div className="menu-card" key={item.id}>
                     <div className="menu-card-img-wrap">
                       <img 
-                        src={item.image || (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+                        src={item.image && (item.image.startsWith('http') || item.image.startsWith('data:')) ? item.image : (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
                         alt={item.name} 
                         className="menu-card-img" 
                         loading="lazy" 

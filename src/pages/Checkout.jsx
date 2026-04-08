@@ -251,13 +251,20 @@ export default function Checkout() {
               <div className="form-group">
                 <label className="form-label" htmlFor="checkout-name"><User size={13} /> Full Name</label>
                 <input id="checkout-name" className={`form-input ${errors.name ? 'input-error' : ''}`} placeholder="Your full name"
-                  value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                  value={form.name} onChange={e => {
+                    setForm(f => ({ ...f, name: e.target.value }));
+                    if (errors.name) setErrors(prev => ({ ...prev, name: null }));
+                  }} />
                 {errors.name && <span className="error-msg">{errors.name}</span>}
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="checkout-phone"><Phone size={13} /> Phone Number</label>
                 <input id="checkout-phone" className={`form-input ${errors.phone ? 'input-error' : ''}`} placeholder="10-digit mobile number"
-                  value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} maxLength={10} />
+                  value={form.phone} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setForm(f => ({ ...f, phone: val }));
+                    if (errors.phone) setErrors(prev => ({ ...prev, phone: null }));
+                  }} />
                 {errors.phone && <span className="error-msg">{errors.phone}</span>}
               </div>
             </div>
@@ -267,7 +274,10 @@ export default function Checkout() {
               <label className="form-label" htmlFor="checkout-address">Full Address</label>
               <textarea id="checkout-address" className={`form-input ${errors.address ? 'input-error' : ''}`}
                 placeholder="Flat/House No., Building, Street Name"
-                value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                value={form.address} onChange={e => {
+                  setForm(f => ({ ...f, address: e.target.value }));
+                  if (errors.address) setErrors(prev => ({ ...prev, address: null }));
+                }}
                 rows={3} style={{ resize: 'vertical' }} />
               {errors.address && <span className="error-msg">{errors.address}</span>}
             </div>

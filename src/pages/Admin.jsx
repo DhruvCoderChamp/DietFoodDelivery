@@ -583,7 +583,7 @@ function SortableItem(props) {
           <GripVertical size={16} />
         </div>
         <img 
-          src={props.item.image || (props.item.id ? `/api/products/${props.item.id}/image?v=${props.item.orderIndex || 0}` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
+          src={props.item.image && (props.item.image.startsWith('http') || props.item.image.startsWith('data:')) ? props.item.image : (props.item.id ? `/api/products/${props.item.id}/image?v=${props.item.orderIndex || 0}` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')} 
           alt={props.item.name} 
           className="admin-menu-img" 
         />

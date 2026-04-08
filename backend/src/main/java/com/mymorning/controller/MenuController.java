@@ -26,8 +26,6 @@ public class MenuController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer size) {
             
-        System.out.println("LEAD DEV OPTIMIZATION: Loading metadata list... (images stripped for speed)");
-        
         if (page != null) {
             // Paginated request
             Page<MenuItem> itemPage = menuItemRepository.findAll(
