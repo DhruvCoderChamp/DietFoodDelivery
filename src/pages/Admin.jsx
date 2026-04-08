@@ -29,6 +29,7 @@ export default function Admin() {
   const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -68,8 +69,8 @@ export default function Admin() {
 
   useEffect(() => {
     if (isAdmin) {
-      fetchItems();
-      fetchOrders();
+      setLoading(true);
+      Promise.all([fetchItems(), fetchOrders()]).finally(() => setLoading(false));
     }
   }, [isAdmin]);
 
@@ -77,7 +78,6 @@ export default function Admin() {
     try {
       const res = await authFetch('/api/products');
       const data = await res.json();
-      // Ensure we preserve the order from the server
       setItems(data.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)));
     } catch (err) { console.error('Error fetching items', err); }
   };
@@ -103,10 +103,10 @@ export default function Admin() {
   }
 
   const stats = [
-    { label: "Total Products", value: items.length, icon: <RefreshCw size={22} />, color: 'orange' },
-    { label: "Total Orders", value: orders.length, icon: <Package size={22} />, color: 'green' },
-    { label: "Revenue", value: `₹${orders.reduce((acc, o) => acc + o.totalAmount, 0)}`, icon: <TrendingUp size={22} />, color: 'blue' },
-    { label: 'Active Customers', value: new Set(orders.map(o => o.phone)).size, icon: <Users size={22} />, color: 'purple' },
+    { label: "Total Products", value: loading ? '...' : items.length, icon: <RefreshCw size={22} />, color: 'orange' },
+    { label: "Total Orders", value: loading ? '...' : orders.length, icon: <Package size={22} />, color: 'green' },
+    { label: "Revenue", value: loading ? '...' : `₹${orders.reduce((acc, o) => acc + o.totalAmount, 0)}`, icon: <TrendingUp size={22} />, color: 'blue' },
+    { label: 'Active Customers', value: loading ? '...' : new Set(orders.map(o => o.phone)).size, icon: <Users size={22} />, color: 'purple' },
   ];
 
   const handleDelete = async (id) => {
