@@ -33,12 +33,10 @@ public class MenuController {
             Page<MenuItem> itemPage = menuItemRepository.findAll(
                 PageRequest.of(page, size, Sort.by("orderIndex").ascending())
             );
-            itemPage.getContent().forEach(item -> item.setImage(null));
             return ResponseEntity.ok(itemPage);
         } else {
             // Legacy/Full list request
             List<MenuItem> items = menuItemRepository.findAll(Sort.by("orderIndex").ascending());
-            items.forEach(item -> item.setImage(null));
             return ResponseEntity.ok(items);
         }
     }
@@ -58,7 +56,7 @@ public class MenuController {
 
             return ResponseEntity.ok()
                     .header("Content-Type", contentType)
-                    .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
+                    .cacheControl(CacheControl.maxAge(5, TimeUnit.MINUTES).cachePublic())
                     .body(decodedBytes);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
