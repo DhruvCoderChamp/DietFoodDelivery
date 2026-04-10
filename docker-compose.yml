@@ -11,17 +11,44 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - ./pgdata_v2:/var/lib/postgresql/data
+      # SECURE PERSISTENT PATH: This path is managed by migrate-data.sh and survives container resets.
+      - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - backend-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
       start_period: 30s
+
+  db-backup:
+    image: postgres:15-alpine
+    container_name: mm_db_backup
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - PGPASSWORD=root
+      - PGHOST=db
+    volumes:
+      - ./backups:/backups
+    entrypoint: |
+      sh -c 'while true; do 
+        echo "Starting daily backup...";
+        mkdir -p /backups;
+        pg_dump -U postgres postgres > /backups/backup_$(date +%Y%m%d_%H%M%S).sql;
+        echo "Backup complete. Cleaning old backups...";
+        find /backups -name "backup_*.sql" -mtime +7 -delete;
+        sleep 86400; 
+      done'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend-net
 
   backend:
     build: 

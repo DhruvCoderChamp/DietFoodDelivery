@@ -78,7 +78,12 @@ export default function Admin() {
     try {
       const res = await authFetch('/api/products');
       const data = await res.json();
-      setItems(data.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)));
+      if (Array.isArray(data)) {
+        setItems(data.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0)));
+      } else {
+        console.error('Expected array from products API, got:', data);
+        setItems([]);
+      }
     } catch (err) { console.error('Error fetching items', err); }
   };
 
@@ -86,8 +91,13 @@ export default function Admin() {
     try {
       const res = await authFetch('/api/orders');
       const data = await res.json();
-      // Industry standard: newest orders at the top
-      setOrders(data.sort((a, b) => (b.id || 0) - (a.id || 0)));
+      if (Array.isArray(data)) {
+        // Industry standard: newest orders at the top
+        setOrders(data.sort((a, b) => (b.id || 0) - (a.id || 0)));
+      } else {
+        console.error('Expected array from orders API, got:', data);
+        setOrders([]);
+      }
     } catch (err) { console.error('Error fetching orders', err); }
   };
 
