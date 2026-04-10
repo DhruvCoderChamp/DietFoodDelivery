@@ -7,11 +7,12 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: "--auth-host=trust"
     volumes:
-      - dietfooddelivery_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -32,10 +33,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: postgres
       DB_URL: jdbc:postgresql://db:5432/postgres
       DB_USERNAME: postgres
-      DB_PASSWORD: root
+      DB_PASSWORD: postgres
     ports:
       - "8080:8080"
     depends_on:
@@ -65,5 +66,5 @@ networks:
     driver: bridge
 
 volumes:
-  dietfooddelivery_postgres_data:
+  postgres_data:
     external: true
