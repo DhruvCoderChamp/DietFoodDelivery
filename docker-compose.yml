@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      # SECURE PERSISTENT PATH: This path is managed by migrate-data.sh and survives container resets.
-      - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
+      # THE RECENT DATA LIVES HERE (17 items):
+      - ./pgdata_v2:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
