@@ -7,12 +7,11 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: root
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      # RECOVERING YOUR 17 ITEMS: Targeting the most likely original volume name
-      - deliveryfoodapp_postgres_data:/var/lib/postgresql/data
+      - dietfooddelivery_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -24,32 +23,6 @@ services:
       retries: 5
       start_period: 30s
 
-  db-backup:
-    image: postgres:15-alpine
-    container_name: mm_db_backup
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      PGPASSWORD: postgres
-      PGHOST: db
-    volumes:
-      - ./backups:/backups
-    entrypoint: |
-      sh -c 'while true; do 
-        echo "Starting daily backup...";
-        mkdir -p /backups;
-        pg_dump -h db -U postgres postgres > /backups/manual_backup_$$(date +%Y%m%d_%H%M%S).sql;
-        echo "Backup complete. Cleaning old backups...";
-        find /backups -name "manual_backup_*.sql" -mtime +7 -delete;
-        sleep 86400; 
-      done'
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - backend-net
-
   backend:
     build: 
       context: ./backend
@@ -57,14 +30,12 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      # Standard Spring Boot environment variables (Guaranteed override)
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      # Custom vars for backward compatibility in codebase
+      SPRING_DATASOURCE_PASSWORD: root
       DB_URL: jdbc:postgresql://db:5432/postgres
       DB_USERNAME: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: root
     ports:
       - "8080:8080"
     depends_on:
@@ -94,6 +65,5 @@ networks:
     driver: bridge
 
 volumes:
-  deliveryfoodapp_postgres_data:
+  dietfooddelivery_postgres_data:
     external: true
-    name: dietfooddelivery_postgres_data
