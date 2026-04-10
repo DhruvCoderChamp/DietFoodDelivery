@@ -1,4 +1,3 @@
-
 package com.mymorning.controller;
 
 import com.mymorning.model.Order;
@@ -53,3 +52,10 @@ public class OrderController {
         }).orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
+    @DeleteMapping("/api/admin/orders/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Map<String, String> deleteAllOrders() {
+        orderRepository.deleteAll();
+        return Map.of("message", "All orders deleted successfully");
+    }
+}
