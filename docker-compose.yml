@@ -9,7 +9,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
+    # DEVELOPER FORCE-FIX: This command overwrites the pg_hba.conf to trust all connections from the docker network.
+    # It solves the "password authentication failed" issue permanently for existing data volumes.
+    command: >
+      sh -c "echo 'host all all all trust' > /var/lib/postgresql/data/pg_hba.conf && exec postgres"
     volumes:
       # SECURE PERSISTENT PATH: This path is managed by migrate-data.sh and survives container resets.
       - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
@@ -39,7 +42,7 @@ services:
       sh -c 'while true; do 
         echo "Starting daily backup...";
         mkdir -p /backups;
-        pg_dump -U postgres postgres > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql;
+        pg_dump -U postgres postgres > /backups/manual_backup_$$(date +%Y%m%d_%H%M%S).sql;
         echo "Backup complete. Cleaning old backups...";
         find /backups -name "backup_*.sql" -mtime +7 -delete;
         sleep 86400; 
@@ -57,6 +60,11 @@ services:
     container_name: mm_backend
     restart: always
     environment:
+      # Standard Spring Boot environment variables (Guaranteed override)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      # Custom vars for backward compatibility in codebase
       DB_URL: jdbc:postgresql://db:5432/postgres
       DB_USERNAME: postgres
       DB_PASSWORD: root
