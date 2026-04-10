@@ -6,10 +6,10 @@ services:
     container_name: mm_postgres
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=postgres
-      - POSTGRES_HOST_AUTH_METHOD=trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       # SECURE PERSISTENT PATH: This path is managed by migrate-data.sh and survives container resets.
       - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
@@ -29,10 +29,10 @@ services:
     container_name: mm_db_backup
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=root
-      - PGPASSWORD=root
-      - PGHOST=db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      PGPASSWORD: root
+      PGHOST: db
     volumes:
       - ./backups:/backups
     entrypoint: |
@@ -57,9 +57,9 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      - DB_URL=jdbc:postgresql://db:5432/postgres
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=root
+      DB_URL: jdbc:postgresql://db:5432/postgres?sslmode=disable
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
     ports:
       - "8080:8080"
     depends_on:
