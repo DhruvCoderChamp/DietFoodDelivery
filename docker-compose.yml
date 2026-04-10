@@ -9,10 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: postgres
-    # DEVELOPER FORCE-FIX: This command overwrites the pg_hba.conf to trust all connections from the docker network.
-    # It solves the "password authentication failed" issue permanently for existing data volumes.
-    command: >
-      sh -c "echo 'host all all all trust' > /var/lib/postgresql/data/pg_hba.conf && exec postgres"
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       # SECURE PERSISTENT PATH: This path is managed by migrate-data.sh and survives container resets.
       - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
@@ -20,12 +17,6 @@ services:
       - "5432:5432"
     networks:
       - backend-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   db-backup:
     image: postgres:15-alpine
@@ -48,8 +39,7 @@ services:
         sleep 86400; 
       done'
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - backend-net
 
@@ -71,8 +61,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - backend-net
 
