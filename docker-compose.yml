@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      # RECOVERING YOUR 17 ITEMS: Direct host-bind to the migrated data path
-      - /var/lib/mymorning/pgdata:/var/lib/postgresql/data
+      # RECOVERING YOUR 17 ITEMS: Targeting the most likely original volume name
+      - deliveryfoodapp_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -96,4 +96,4 @@ networks:
 volumes:
   deliveryfoodapp_postgres_data:
     external: true
-    name: dietfooddelivery_deliveryfoodapp_postgres_data
+    name: dietfooddelivery_postgres_data
