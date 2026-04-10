@@ -11,12 +11,18 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      # RECOVERING YOUR 17 ITEMS: This volume is identified as having the data
-      - ./pgdata_v2:/var/lib/postgresql/data
+      # RECOVERING YOUR 17 ITEMS: Explicitly mapping to the identified volume name
+      - deliveryfoodapp_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   db-backup:
     image: postgres:15-alpine
@@ -33,13 +39,14 @@ services:
       sh -c 'while true; do 
         echo "Starting daily backup...";
         mkdir -p /backups;
-        pg_dump -U postgres postgres > /backups/manual_backup_$$(date +%Y%m%d_%H%M%S).sql;
+        pg_dump -h db -U postgres postgres > /backups/manual_backup_$$(date +%Y%m%d_%H%M%S).sql;
         echo "Backup complete. Cleaning old backups...";
-        find /backups -name "backup_*.sql" -mtime +7 -delete;
+        find /backups -name "manual_backup_*.sql" -mtime +7 -delete;
         sleep 86400; 
       done'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - backend-net
 
@@ -61,7 +68,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - backend-net
 
@@ -87,3 +95,5 @@ networks:
 
 volumes:
   deliveryfoodapp_postgres_data:
+    external: true
+    name: dietfooddelivery_deliveryfoodapp_postgres_data
