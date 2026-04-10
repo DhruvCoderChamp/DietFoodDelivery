@@ -88,7 +88,15 @@ public class MenuController {
             item.setProtein(updatedItem.getProtein());
             item.setCategory(updatedItem.getCategory());
             item.setDescription(updatedItem.getDescription());
-            item.setImage(updatedItem.getImage());
+            
+            if (updatedItem.getImage() != null) {
+                if (updatedItem.getImage().isEmpty()) {
+                    item.setImage(null);
+                } else {
+                    item.setImage(updatedItem.getImage());
+                }
+            }
+            
             item.setTags(updatedItem.getTags());
             item.setBadge(updatedItem.getBadge());
             item.setIsVeg(updatedItem.getIsVeg());
