@@ -31,10 +31,20 @@ public class MenuController {
             Page<MenuItem> itemPage = menuItemRepository.findAll(
                 PageRequest.of(page, size, Sort.by("orderIndex").ascending())
             );
+            itemPage.getContent().forEach(item -> {
+                if (item.getImage() != null && item.getImage().startsWith("data:image")) {
+                    item.setImage(null);
+                }
+            });
             return ResponseEntity.ok(itemPage);
         } else {
             // Legacy/Full list request
             List<MenuItem> items = menuItemRepository.findAll(Sort.by("orderIndex").ascending());
+            items.forEach(item -> {
+                if (item.getImage() != null && item.getImage().startsWith("data:image")) {
+                    item.setImage(null);
+                }
+            });
             return ResponseEntity.ok(items);
         }
     }

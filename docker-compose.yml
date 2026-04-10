@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      # RECOVERING YOUR 17 ITEMS: Reconnecting to the identified named volume
-      - postgres_data:/var/lib/postgresql/data
+      # RECOVERING YOUR 17 ITEMS: This volume is identified as having the data
+      - deliveryfoodapp_postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -86,4 +86,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  deliveryfoodapp_postgres_data:
