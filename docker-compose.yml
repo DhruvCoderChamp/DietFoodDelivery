@@ -69,21 +69,21 @@ services:
       - backend-net
 
   backup:
-    image: postgres:15-alpine
-    container_name: mm_backup
-    depends_on:
-      - db
-    volumes:
-      - ./backup:/backup
-    environment:
-      PGPASSWORD: root
-    entrypoint: >
-      sh -c "while true; do
-      pg_dump -h db -U postgres mymorning > /backup/db_$(date +%F_%H-%M-%S).sql;
-      sleep 86400;
-      done"
-    networks:
-      - backend-net
+  image: postgres:15-alpine
+  container_name: mm_backup
+  depends_on:
+    - db
+  volumes:
+    - ./backup:/backup
+  environment:
+    PGPASSWORD: root
+  entrypoint: >
+    sh -c "while true; do
+    pg_dump -h db -U postgres mymorning > /backup/db_$$(date +%F_%H-%M-%S).sql;
+    sleep 86400;
+    done"
+  networks:
+    - backend-net
 
 networks:
   backend-net:
@@ -91,4 +91,3 @@ networks:
 
 volumes:
   postgres_data:
-  
