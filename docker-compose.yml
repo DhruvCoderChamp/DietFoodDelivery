@@ -8,8 +8,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: mymorning
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -17,11 +16,15 @@ services:
     networks:
       - backend-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mymorning"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build: 
@@ -30,10 +33,10 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mymorning
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: root
-      DB_URL: jdbc:postgresql://db:5432/postgres
+      DB_URL: jdbc:postgresql://db:5432/mymorning
       DB_USERNAME: postgres
       DB_PASSWORD: root
     ports:
@@ -43,6 +46,11 @@ services:
         condition: service_healthy
     networks:
       - backend-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -60,11 +68,27 @@ services:
     networks:
       - backend-net
 
+  backup:
+    image: postgres:15-alpine
+    container_name: mm_backup
+    depends_on:
+      - db
+    volumes:
+      - ./backup:/backup
+    environment:
+      PGPASSWORD: root
+    entrypoint: >
+      sh -c "while true; do
+      pg_dump -h db -U postgres mymorning > /backup/db_$(date +%F_%H-%M-%S).sql;
+      sleep 86400;
+      done"
+    networks:
+      - backend-net
+
 networks:
   backend-net:
     driver: bridge
 
 volumes:
   postgres_data:
-    external: true
-    name: dietfooddelivery_deliveryfoodapp_postgres_data
+  
