@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: root
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
@@ -32,10 +32,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: root
       DB_URL: jdbc:postgresql://db:5432/postgres
       DB_USERNAME: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: root
     ports:
       - "8080:8080"
     depends_on:
@@ -65,6 +65,6 @@ networks:
     driver: bridge
 
 volumes:
-  # This version creates a fresh volume. 
-  # If you have an old volume name, we will change this to 'external: true'.
   postgres_data:
+    external: true
+    name: dietfooddelivery_deliveryfoodapp_postgres_data
