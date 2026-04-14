@@ -1,32 +1,6 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: mm_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: mymorning
-    volumes:
-      - ./db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - backend-net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d mymorning"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
   backend:
     build:
       context: ./backend
@@ -34,17 +8,14 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mymorning
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root
-      DB_URL: jdbc:postgresql://db:5432/mymorning
-      DB_USERNAME: postgres
-      DB_PASSWORD: root
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-lucky-king-a12dzwvd.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      SPRING_DATASOURCE_USERNAME: neondb_owner
+      SPRING_DATASOURCE_PASSWORD: npg_Rj0VLTf3SznF
+      DB_URL: jdbc:postgresql://ep-lucky-king-a12dzwvd.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      DB_USERNAME: neondb_owner
+      DB_PASSWORD: npg_Rj0VLTf3SznF
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
     networks:
       - backend-net
     logging:
@@ -66,25 +37,6 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
-    networks:
-      - backend-net
-
-  backup:
-    image: postgres:15-alpine
-    container_name: mm_backup
-    depends_on:
-      - db
-    volumes:
-      - ./backup:/backup
-    environment:
-      PGPASSWORD: root
-    entrypoint: >
-      sh -c "while true; do
-      echo 'Running backup...';
-      pg_dump -h db -U postgres mymorning > /backup/db_$$(date +%F_%H-%M-%S).sql;
-      echo 'Backup done';
-      sleep 86400;
-      done"
     networks:
       - backend-net
 
