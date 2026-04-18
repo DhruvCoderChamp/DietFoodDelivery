@@ -24,7 +24,7 @@ public class OrderController {
 
     @GetMapping("/api/orders/{orderId}")
     public Order getOrderByOrderId(@PathVariable String orderId) {
-        return orderRepository.findByOrderId(orderId)
+            return orderRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with orderId: " + orderId));
     }
 

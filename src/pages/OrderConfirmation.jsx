@@ -193,8 +193,8 @@ export default function OrderConfirmation() {
 
             <div className="conf-card" style={{ padding: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-mid)', marginBottom: 8 }}>Need Help?</div>
-              <a href="tel:+918012345678" className="help-link">📞 +91 80 1234 5678</a>
-              <a href="mailto:hello@mymorning.in" className="help-link">✉️ hello@mymorning.in</a>
+              <a href="tel:+919187532042" className="help-link">📞 +91 91875 32042</a>
+              <a href="mailto:mymorningblr@gmail.com" className="help-link">✉️ mymorningblr@gmail.com</a>
             </div>
           </div>
         </div>

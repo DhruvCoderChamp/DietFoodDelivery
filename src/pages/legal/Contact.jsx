@@ -39,11 +39,11 @@ export default function Contact() {
 
       <div className="container legal-content contact-grid">
         <div className="contact-info">
-          <button className="contact-card btn-reset" onClick={(e) => triggerProtocolLink(e, 'mailto:hello@mymorning.in')}>
+          <button className="contact-card btn-reset" onClick={(e) => triggerProtocolLink(e, 'mailto:mymorningblr@gmail.com')}>
             <Mail className="contact-icon" />
             <div>
               <h3>Support Email</h3>
-              <p>hello@mymorning.in</p>
+              <p>mymorningblr@gmail.com</p>
             </div>
           </button>
           <button className="contact-card btn-reset" onClick={(e) => triggerProtocolLink(e, 'tel:+919187532042')}>
@@ -68,7 +68,7 @@ export default function Contact() {
             const { name, email, message } = form;
             const body = `Name: ${name}\r\nEmail: ${email}\r\n\r\nMessage:\r\n${message}`;
             const subject = encodeURIComponent(`Contact Us - ${name}`);
-            const mailtoUrl = `mailto:hello@mymorning.in?subject=${subject}&body=${encodeURIComponent(body)}`;
+            const mailtoUrl = `mailto:mymorningblr@gmail.com?subject=${subject}&body=${encodeURIComponent(body)}`;
             
             // More robust method to trigger mailto
             const tempLink = document.createElement('a');
