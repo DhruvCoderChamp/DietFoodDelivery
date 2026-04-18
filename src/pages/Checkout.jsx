@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, LocateFixed, Clock, User, Phone, Home, ChevronRight, Zap } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -21,8 +21,27 @@ export default function Checkout() {
     instructions: '',
     timeSlot: 'ASAP (Within 30 mins)'
   });
+
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Load saved address on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('mm_saved_address');
+    if (saved) {
+      try {
+        const savedForm = JSON.parse(saved);
+        setForm(f => ({
+          ...f,
+          name: savedForm.name || f.name,
+          phone: savedForm.phone || f.phone,
+          address: savedForm.address || f.address,
+          area: savedForm.area || f.area,
+          instructions: savedForm.instructions || f.instructions
+        }));
+      } catch (e) { console.error('Failed to parse saved address', e); }
+    }
+  }, []);
 
   // Generate time slots from 6 AM to 10 PM
   const generateTimeSlots = () => {
@@ -206,8 +225,16 @@ export default function Checkout() {
     const text = textLines.filter(line => line !== null).join('%0a').replace(/\n/g, '%0a');
 
     window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
+    
+    // 3. Save to localStorage + session + clear cart + redirect
+    localStorage.setItem('mm_saved_address', JSON.stringify({
+      name: form.name,
+      phone: form.phone,
+      address: form.address,
+      area: form.area,
+      instructions: form.instructions
+    }));
 
-    // 3. Save to session + clear cart + redirect
     sessionStorage.setItem('mm_order_id', savedOrderId);
     sessionStorage.setItem('mm_checkout', JSON.stringify({ form, items, total, deliveryFee }));
     clearCart();
