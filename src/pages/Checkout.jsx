@@ -222,9 +222,11 @@ export default function Checkout() {
       `💚 *My Morning Team*`
     ];
 
-    const text = textLines.filter(line => line !== null).join('%0a').replace(/\n/g, '%0a');
+    const orderMsg = textLines.filter(line => line !== null).join('\n');
+    const encodedText = encodeURIComponent(orderMsg);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=919187532042&text=${encodedText}`;
 
-    window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
+    window.open(whatsappUrl, '_blank');
     
     // 3. Save to localStorage + session + clear cart + redirect
     localStorage.setItem('mm_saved_address', JSON.stringify({
