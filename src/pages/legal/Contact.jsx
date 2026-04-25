@@ -56,7 +56,7 @@ export default function Contact() {
                 <a href="tel:+919187542042" style={{color: 'inherit', textDecoration: 'none', marginTop: '4px', display: 'inline-block'}}>Thejesh (Co-founder): +91 91875 42042</a>
               </p>
             </div>
-          </div>>
+          </div>
           <div className="contact-card">
             <MapPin className="contact-icon" />
             <div>
