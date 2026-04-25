@@ -22,7 +22,10 @@ export default function Footer() {
           </p>
           <div className="footer-contact">
             <a href="tel:+919187532042" className="footer-contact-item">
-              <Phone size={14} /> +91 91875 32042
+              <Phone size={14} /> +91 91875 32042 (Vivek)
+            </a>
+            <a href="tel:+919187542042" className="footer-contact-item">
+              <Phone size={14} /> +91 91875 42042 (Thejesh)
             </a>
             <a href="mailto:mymorningblr@gmail.com" className="footer-contact-item">
               <Mail size={14} /> mymorningblr@gmail.com

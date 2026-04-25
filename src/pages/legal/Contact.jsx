@@ -46,13 +46,17 @@ export default function Contact() {
               <p>mymorningblr@gmail.com</p>
             </div>
           </button>
-          <button className="contact-card btn-reset" onClick={(e) => triggerProtocolLink(e, 'tel:+919187532042')}>
+          <div className="contact-card btn-reset" style={{ textAlign: 'left', cursor: 'default' }}>
             <Phone className="contact-icon" />
             <div>
-              <h3>Phone Number</h3>
-              <p>+91 91875 32042</p>
+              <h3>Phone Numbers</h3>
+              <p>
+                <a href="tel:+919187532042" style={{color: 'inherit', textDecoration: 'none'}}>Vivek (Founder): +91 91875 32042</a>
+                <br />
+                <a href="tel:+919187542042" style={{color: 'inherit', textDecoration: 'none', marginTop: '4px', display: 'inline-block'}}>Thejesh (Co-founder): +91 91875 42042</a>
+              </p>
             </div>
-          </button>
+          </div>>
           <div className="contact-card">
             <MapPin className="contact-icon" />
             <div>

@@ -1,32 +1,32 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle, Clock, MapPin, ShoppingBag, RefreshCw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle, XCircle, Clock, MapPin, ShoppingBag, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/logo.png';
 import './OrderConfirmation.css';
 
 const STEPS = [
-  { key: 'Confirmed', label: 'Order Placed', icon: '✅' },
-  { key: 'Preparing', label: 'Being Prepared', icon: '👨‍🍳' },
-  { key: 'Out for Delivery', label: 'Out for Delivery', icon: '🛵' },
+  { key: 'In Progress', label: 'In Progress', icon: '⏳' },
+  { key: 'Confirmed', label: 'Confirmed', icon: '✅' },
   { key: 'Delivered', label: 'Delivered', icon: '🏠' },
 ];
 
 const STATUS_MESSAGES = {
-  'Confirmed': 'Your order has been received! We\'ll start preparing it shortly.',
-  'Preparing': 'Our chefs are preparing your fresh, nutritious meal right now! 🍳',
-  'Out for Delivery': 'Your order is on the way! Our delivery partner will reach you soon. 🛵',
-  'Delivered': 'Your order has been delivered. Enjoy your healthy meal! 🎉',
+  'In Progress': 'Your order request has been sent! We will review and confirm it shortly.',
+  'Confirmed': 'Your order has been confirmed and is being processed.',
+  'Denied': 'Oh no! Our kitchen is temporarily running at full capacity and we unfortunately cannot prepare your meal right now. 😔 Please try ordering again in a bit!',
+  'Delivered': 'Your order has been delivered. Enjoy your meal! 🎉',
 };
 
 export default function OrderConfirmation() {
   const { authFetch } = useAuth();
+  const navigate = useNavigate();
   const orderId = sessionStorage.getItem('mm_order_id');
   const checkoutData = JSON.parse(sessionStorage.getItem('mm_checkout') || '{}');
   const { form = {}, total = 0 } = checkoutData;
 
-  const [liveStatus, setLiveStatus] = useState('Confirmed');
+  const [liveStatus, setLiveStatus] = useState('In Progress');
   const [lastChecked, setLastChecked] = useState(new Date());
   const [checking, setChecking] = useState(false);
 
@@ -51,6 +51,14 @@ export default function OrderConfirmation() {
     return () => clearInterval(interval);
   }, []);
 
+  // Auto redirect to orders history card view when finalized after giving them 7s to read the catchy message
+  useEffect(() => {
+    if (liveStatus === 'Delivered' || liveStatus === 'Denied') {
+      const t = setTimeout(() => navigate('/orders'), 7000);
+      return () => clearTimeout(t);
+    }
+  }, [liveStatus, navigate]);
+
   const currentStepIndex = STEPS.findIndex(s => s.key === liveStatus);
 
   const tomorrow = new Date();
@@ -59,17 +67,23 @@ export default function OrderConfirmation() {
 
   return (
     <div className="confirmation-page page-enter">
-      <div className="confirmation-hero">
-        <div className="success-anim">
-          <CheckCircle size={72} strokeWidth={1.5} />
+      <div className={`confirmation-hero ${liveStatus === 'Denied' ? 'denied-theme' : ''}`} style={liveStatus === 'Denied' ? { background: '#fdf2f2', borderBottom: '1px solid #f8d7da' } : {}}>
+        <div className={liveStatus === 'Denied' ? 'error-anim' : 'success-anim'}>
+          {liveStatus === 'Denied' ? (
+            <XCircle size={72} strokeWidth={1.5} color="#e74c3c" />
+          ) : (
+            <CheckCircle size={72} strokeWidth={1.5} color="#27ae60" />
+          )}
         </div>
-        <h1 className="confirmation-title">
-          {liveStatus === 'Delivered' ? 'Order Delivered! 🎉' : 'Order Confirmed! 🎉'}
+        <h1 className="confirmation-title" style={liveStatus === 'Denied' ? { color: '#c0392b' } : {}}>
+          {liveStatus === 'Delivered' ? 'Order Delivered! 🎉' : liveStatus === 'Denied' ? 'Order Unavailable' : liveStatus === 'In Progress' ? 'Order Sent' : 'Order Confirmed! 🎉'}
         </h1>
-        <p className="confirmation-sub">
+        <p className="confirmation-sub" style={liveStatus === 'Denied' ? { color: '#e74c3c', maxWidth: '400px', margin: '15px auto 0', lineHeight: 1.5, fontWeight: 500 } : {}}>
           {STATUS_MESSAGES[liveStatus] || 'Your healthy breakfast is on the way!'}
         </p>
-        <div className="order-id-pill">Order ID: <strong>{orderId}</strong></div>
+        <div className="order-id-pill" style={liveStatus === 'Denied' ? { background: '#f2dede', color: '#c0392b' } : {}}>
+          Order ID: <strong>{orderId}</strong>
+        </div>
       </div>
 
       <div className="container confirmation-content">
@@ -99,19 +113,23 @@ export default function OrderConfirmation() {
                 <span className="live-time">Updated {lastChecked.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
 
-              <div className="tracker">
-                {STEPS.map((step, i) => {
-                  const isDone = i <= currentStepIndex;
-                  const isActive = i === currentStepIndex;
-                  return (
-                    <div className={`tracker-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`} key={i}>
-                      <div className={`tracker-icon ${isActive ? 'pulse-icon' : ''}`}>{step.icon}</div>
-                      <div className="tracker-label">{step.label}</div>
-                      {i < STEPS.length - 1 && <div className={`tracker-line ${isDone && i < currentStepIndex ? 'done' : ''}`}></div>}
-                    </div>
-                  );
-                })}
-              </div>
+
+              {/* Tracker only shows if not denied */}
+              {liveStatus !== 'Denied' && (
+                <div className="tracker">
+                  {STEPS.map((step, i) => {
+                    const isDone = i <= currentStepIndex;
+                    const isActive = i === currentStepIndex;
+                    return (
+                      <div className={`tracker-step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}`} key={i}>
+                        <div className={`tracker-icon ${isActive ? 'pulse-icon' : ''}`}>{step.icon}</div>
+                        <div className="tracker-label">{step.label}</div>
+                        {i < STEPS.length - 1 && <div className={`tracker-line ${isDone && i < currentStepIndex ? 'done' : ''}`}></div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Delivery Info */}
@@ -186,14 +204,15 @@ export default function OrderConfirmation() {
               <Link to="/menu" className="btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '15px' }}>
                 <ShoppingBag size={16} /> Order Again
               </Link>
-              <Link to="/" className="btn-outline" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>
-                Back to Home
+              <Link to="/orders" className="btn-outline" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>
+                View Order History
               </Link>
             </div>
 
             <div className="conf-card" style={{ padding: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-mid)', marginBottom: 8 }}>Need Help?</div>
-              <a href="tel:+919187532042" className="help-link">📞 +91 91875 32042</a>
+              <a href="tel:+919187532042" className="help-link">📞 +91 91875 32042 (Vivek)</a>
+              <a href="tel:+919187542042" className="help-link">📞 +91 91875 42042 (Thejesh)</a>
               <a href="mailto:mymorningblr@gmail.com" className="help-link">✉️ mymorningblr@gmail.com</a>
             </div>
           </div>
