@@ -18,10 +18,8 @@ export default function Subscription() {
   const [activePlan, setActivePlan] = useState(null);
 
   const handleSendToWhatsApp = () => {
-    const rawMsg = `🌿 *New Subscription Request*\n\n📅 *Plan Duration:* ${activePlan.days} Days\n👤 *Name:* ${user?.name || 'Customer'}\n📱 *Contact:* ${user?.phone || 'Not provided'}\n\nI would like to start my subscription! Here is my weekly plan based on your menu:\n\nMonday: \nTuesday: \nWednesday: \nThursday: \nFriday: \nSaturday: \nSunday: \n\nPlease confirm the details and total price. Thank you!`;
-    const encodedText = encodeURIComponent(rawMsg);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=919187532042&text=${encodedText}`;
-    window.open(whatsappUrl, '_blank');
+    const text = `🌿 *New Subscription Request*%0A%0A📅 *Plan Duration:* ${activePlan.days} Days%0A👤 *Name:* ${user?.name || 'Customer'}%0A📱 *Contact:* ${user?.phone || 'Not provided'}%0A%0AI would like to start my subscription! Here is my weekly plan based on your menu:%0A%0AMonday: %0ATuesday: %0AWednesday: %0AThursday: %0AFriday: %0ASaturday: %0ASunday: %0A%0APlease confirm the details and total price. Thank you!`;
+    window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
   };
 
   if (!activePlan) {

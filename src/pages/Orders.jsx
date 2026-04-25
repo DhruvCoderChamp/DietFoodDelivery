@@ -4,7 +4,7 @@ import {
   Package, Clock, CheckCircle, ExternalLink, ChevronRight, 
   MapPin, ShoppingBag, Loader, AlertCircle 
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
 export default function Orders() {
   const { user, authFetch } = useAuth();
@@ -39,17 +39,17 @@ export default function Orders() {
 
   const getStatusColor = (status) => {
     switch(status?.toUpperCase()) {
-      case 'PENDING': return 'badge-orange';
-      case 'PAID': return 'badge-green';
+      case 'IN PROGRESS': return 'badge-orange';
+      case 'CONFIRMED': return 'badge-blue';
       case 'DELIVERED': return 'badge-green';
-      case 'CANCELLED': return 'badge-red';
-      default: return 'badge-green';
+      case 'DENIED': return 'badge-red';
+      default: return 'badge-gray';
     }
   };
 
   if (loading) return (
     <div className="empty-state">
-      <Loader className="spin" size={40} color="#2d6a1f" />
+      <Loader className="spin" size={40} color="#257214ff" />
       <p>Fetching your order history...</p>
     </div>
   );
@@ -62,6 +62,18 @@ export default function Orders() {
       <button className="btn-primary" onClick={fetchOrders}>Try Again</button>
     </div>
   );
+
+  // Check for an active order (In Progress or Confirmed)
+  const activeOrder = orders.find(o => ['In Progress', 'Confirmed'].includes(o.status));
+  if (activeOrder) {
+    // Populate sessionStorage so tracker mounts natively correctly
+    sessionStorage.setItem('mm_order_id', activeOrder.orderId || activeOrder.id);
+    sessionStorage.setItem('mm_checkout', JSON.stringify({
+       form: { name: activeOrder.customerName, phone: activeOrder.phone, address: activeOrder.address },
+       total: activeOrder.totalAmount
+    }));
+    return <Navigate to="/order-confirmation" replace />;
+  }
 
   return (
     <div className="page-enter" style={{ padding: '80px 0', background: '#fdfaf6', minHeight: '100vh' }}>
@@ -102,6 +114,12 @@ export default function Orders() {
                         <span style={{ fontWeight: '700' }}>₹{item.price * item.quantity}</span>
                      </div>
                    ))}
+                   {order.status === 'Denied' && (
+                     <div style={{ marginTop: '12px', fontSize: '12px', color: '#e74c3c', background: '#fdf2f2', padding: '8px', borderRadius: '6px' }}>
+                        <AlertCircle size={14} style={{ display: 'inline', verticalAlign: '-3px', marginRight: '4px' }} />
+                        Order unavailable: Kitchen running at full capacity.
+                     </div>
+                   )}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

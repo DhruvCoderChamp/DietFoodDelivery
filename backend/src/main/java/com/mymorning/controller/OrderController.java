@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @RestController
 public class OrderController {
@@ -39,6 +40,9 @@ public class OrderController {
     public Order createOrder(@RequestBody Order order) {
         if (order.getOrderId() == null || order.getOrderId().isEmpty()) {
             order.setOrderId("MM" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
+        }
+        if (order.getCreatedAt() == null) {
+            order.setCreatedAt(LocalDateTime.now());
         }
         return orderRepository.save(order);
     }

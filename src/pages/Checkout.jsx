@@ -19,7 +19,7 @@ export default function Checkout() {
     address: '', 
     area: '', 
     instructions: '',
-    timeSlot: 'ASAP (Within 30 mins)'
+    timeSlot: ''
   });
 
   const [locating, setLocating] = useState(false);
@@ -43,20 +43,46 @@ export default function Checkout() {
     }
   }, []);
 
-  // Generate time slots from 6 AM to 10 PM
+  // Generate time slots minimum 3 hours from current time
   const generateTimeSlots = () => {
-    const slots = ['ASAP (Within 30 mins)'];
-    for (let hour = 6; hour <= 21; hour++) {
-      const displayHour = hour > 12 ? hour - 12 : hour;
+    const slots = [];
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Minimum 3 hours buffer
+    let startHour = currentHour + 3;
+    
+    // If it's already too late today, show tomorrow's slots
+    if (startHour >= 22) {
+      slots.push('Tomorrow 8:00 AM');
+      slots.push('Tomorrow 9:00 AM');
+      slots.push('Tomorrow 10:00 AM');
+      return slots;
+    }
+    
+    if (startHour < 6) startHour = 6;
+    
+    for (let hour = startHour; hour <= 21; hour++) {
+      const displayHour = hour === 12 ? 12 : hour % 12;
       const ampm = hour >= 12 ? 'PM' : 'AM';
       slots.push(`${displayHour}:00 ${ampm}`);
       slots.push(`${displayHour}:30 ${ampm}`);
     }
-    slots.push('10:00 PM');
+    
+    if (slots.length > 0 && slots[slots.length-1] !== '10:00 PM') {
+        slots.push('10:00 PM');
+    }
     return slots;
   };
 
   const timeSlots = generateTimeSlots();
+  
+  // Set default time slot if not selected
+  useEffect(() => {
+    if (!form.timeSlot && timeSlots.length > 0) {
+      setForm(f => ({ ...f, timeSlot: timeSlots[0] }));
+    }
+  }, [timeSlots, form.timeSlot]);
 
   const detectLocation = () => {
     setLocating(true);
@@ -160,7 +186,7 @@ export default function Checkout() {
           items: items.map(i => ({ productId: i.id, name: i.name, quantity: i.quantity, price: i.price, image: i.image })),
           totalAmount: total,
           timeSlot: form.timeSlot,
-          status: 'Confirmed'
+          status: 'In Progress'
         })
       });
       if (res.ok) {
@@ -222,11 +248,12 @@ export default function Checkout() {
       `💚 *My Morning Team*`
     ];
 
-    const orderMsg = textLines.filter(line => line !== null).join('\n');
-    const encodedText = encodeURIComponent(orderMsg);
-    const whatsappUrl = `https://api.whatsapp.com/send?phone=919187532042&text=${encodedText}`;
+    const text = textLines.filter(line => line !== null).join('%0a').replace(/\n/g, '%0a');
 
-    window.open(whatsappUrl, '_blank');
+    window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
+    
+    // Show confirmation
+    alert("Order request sent successfully!");
     
     // 3. Save to localStorage + session + clear cart + redirect
     localStorage.setItem('mm_saved_address', JSON.stringify({
@@ -339,12 +366,12 @@ export default function Checkout() {
             </div>
 
             {/* ETA */}
-            <div className="eta-card" style={{ border: '2px solid var(--green-main)', background: '#f0f9eb' }}>
-              <Zap size={20} className="eta-icon" style={{ color: 'var(--green-main)' }} />
+            <div className="eta-card" style={{ border: '2px solid #3498db', background: '#ebf5fc' }}>
+              <Clock size={20} className="eta-icon" style={{ color: '#3498db' }} />
               <div>
-                <div className="eta-title" style={{ color: 'var(--green-dark)' }}>⚡ 30-Minute Delivery Promise</div>
-                <div className="eta-time">{form.timeSlot === 'ASAP (Within 30 mins)' ? 'Arriving within 30 minutes!' : `Delivery by ${form.timeSlot} + 30 mins`}</div>
-                <div className="eta-sub">Freshly prepared & dispatched instantly 🚀</div>
+                <div className="eta-title" style={{ color: '#2980b9' }}>Scheduled Delivery</div>
+                <div className="eta-time">Delivery by {form.timeSlot}</div>
+                <div className="eta-sub">Freshly prepared for your chosen time 🕒</div>
               </div>
             </div>
 

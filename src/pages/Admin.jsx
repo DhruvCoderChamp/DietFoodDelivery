@@ -8,13 +8,14 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import logoImg from '../assets/logo.png';
+import * as XLSX from 'xlsx';
 import './Admin.css';
 
 const STATUS_COLORS = {
-  'Delivered': '#27ae60',
-  'Out for Delivery': '#e67e22',
-  'Preparing': '#3498db',
+  'In Progress': '#f39c12',
   'Confirmed': '#9b59b6',
+  'Delivered': '#27ae60',
+  'Denied': '#c0392b'
 };
 
 export default function Admin() {
@@ -30,6 +31,10 @@ export default function Admin() {
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Manual Order state
+  const [manualOrder, setManualOrder] = useState({ name: '', phone: '', address: '', timeSlot: '', details: '', price: '' });
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(new Date().toDateString());
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -113,10 +118,10 @@ export default function Admin() {
   }
 
   const stats = [
-    { label: "Total Products", value: loading ? '...' : items.length, icon: <RefreshCw size={22} />, color: 'orange' },
-    { label: "Total Orders", value: loading ? '...' : orders.length, icon: <Package size={22} />, color: 'green' },
-    { label: "Revenue", value: loading ? '...' : `₹${orders.reduce((acc, o) => acc + o.totalAmount, 0)}`, icon: <TrendingUp size={22} />, color: 'blue' },
-    { label: 'Active Customers', value: loading ? '...' : new Set(orders.map(o => o.phone)).size, icon: <Users size={22} />, color: 'purple' },
+    { label: "Total Orders", value: loading ? '...' : orders.length, icon: <Package size={22} />, color: 'purple' },
+    { label: "In Progress Orders", value: loading ? '...' : orders.filter(o => o.status === 'In Progress').length, icon: <RefreshCw size={22} />, color: 'orange' },
+    { label: "Confirmed Orders", value: loading ? '...' : orders.filter(o => o.status === 'Confirmed').length, icon: <Check size={22} />, color: 'green' },
+    { label: "Revenue", value: loading ? '...' : `₹${orders.filter(o => o.status !== 'Denied' && o.status !== 'In Progress').reduce((acc, o) => acc + o.totalAmount, 0)}`, icon: <TrendingUp size={22} />, color: 'blue' },
   ];
 
   const handleDelete = async (id) => {
@@ -142,12 +147,66 @@ export default function Admin() {
 
   const handleStatusChange = async (orderId, status) => {
     try {
+      const orderToUpdate = orders.find(o => o.id === orderId);
       await authFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         body: JSON.stringify({ status })
       });
       fetchOrders();
+
+      if (status === 'Confirmed' && orderToUpdate) {
+        const text = `Hi ${orderToUpdate.customerName}, your order (${orderToUpdate.orderId}) has been Confirmed by My Morning! 🌅%0a%0aIt will be delivered as requested at ${orderToUpdate.timeSlot || 'the chosen time'}. Thank you! 💚`;
+        window.open(`https://wa.me/91${orderToUpdate.phone}?text=${text}`, '_blank');
+      }
     } catch (err) { console.error('Error updating order', err); }
+  };
+
+  const handleManualOrderSubmit = async () => {
+    if (!manualOrder.name || !manualOrder.phone || !manualOrder.address) {
+      alert("Please fill all required fields");
+      return;
+    }
+    const orderPayload = {
+      customerName: manualOrder.name,
+      phone: manualOrder.phone,
+      address: manualOrder.address,
+      timeSlot: manualOrder.timeSlot || 'ASAP (Within 30 mins)',
+      status: 'In Progress',
+      totalAmount: Number(manualOrder.price) || 0,
+      items: [{
+        name: manualOrder.details || 'Manual Order Item',
+        quantity: 1,
+        price: Number(manualOrder.price) || 0,
+        image: ''
+      }]
+    };
+    try {
+      const res = await authFetch('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify(orderPayload)
+      });
+      if (res.ok) {
+        alert('Order created successfully in In Progress state!');
+        fetchOrders();
+        setManualOrder({ name: '', phone: '', address: '', timeSlot: '', details: '', price: '' });
+      } else {
+        alert('Failed to create order');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while creating manual order');
+    }
+  };
+
+  // Helper for Reports Delivery Buffer
+  const getExpectedDelivery = (createdAt, timeSlot) => {
+    if (timeSlot === 'ASAP (Within 30 mins)') {
+      if (!createdAt) return 'Within 30 mins';
+      const d = new Date(createdAt);
+      d.setMinutes(d.getMinutes() + 30);
+      return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+    return `${timeSlot} (+30m buffer)`;
   };
 
   const handleImageUpload = (e) => {
@@ -292,6 +351,9 @@ export default function Admin() {
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
               { id: 'orders', label: 'Orders', icon: '📦' },
               { id: 'menu', label: 'Manage Products', icon: '🍱' },
+              { id: 'calendar', label: 'Calendar View', icon: '📅' },
+              { id: 'reports', label: 'Reports & Export', icon: '📑' },
+              { id: 'manual_order', label: 'Manual Order', icon: '➕' },
             ].map(tab => (
               <button 
                 key={tab.id} 
@@ -396,6 +458,145 @@ export default function Admin() {
                     ))}
                   </SortableContext>
                 </DndContext>
+              </div>
+            </div>
+          )}
+
+          {/* Calendar View */}
+          {activeTab === 'calendar' && (
+            <div>
+              <div className="admin-page-title">Calendar View</div>
+              <div style={{ padding: '20px', background: '#fff', borderRadius: '12px' }}>
+                <p>Select a date to view orders:</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', marginTop: '15px' }}>
+                  {[...Array(7)].map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - 3 + i);
+                    const dayOrders = orders.filter(o => {
+                      if (!o.createdAt) return false;
+                      const oDate = new Date(o.createdAt);
+                      return oDate.toDateString() === d.toDateString();
+                    });
+                    return (
+                      <div key={i} style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: (selectedCalendarDate === d.toDateString()) ? '#d4e8c8' : (dayOrders.length > 0 ? '#f0f9eb' : '#fafafa'), transform: selectedCalendarDate === d.toDateString() ? 'scale(1.02)' : 'none', transition: 'all 0.2s', boxShadow: selectedCalendarDate === d.toDateString() ? '0 4px 12px rgba(0,0,0,0.1)' : 'none' }} onClick={() => setSelectedCalendarDate(d.toDateString())}>
+                        <div style={{ fontWeight: 'bold' }}>{d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                        <div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+                          {dayOrders.slice(0, 2).map((o, idx) => <div key={idx}>📦 {o.customerName}</div>)}
+                          {dayOrders.length > 2 && <div style={{ color: '#3498db' }}>+{dayOrders.length - 2} more</div>}
+                          {dayOrders.length === 0 && <div style={{ color: '#aaa' }}>No orders</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <div className="admin-section-title">
+                  Orders for {new Date(selectedCalendarDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </div>
+                <OrdersTable 
+                  orders={orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === selectedCalendarDate)} 
+                  onStatusChange={handleStatusChange} 
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Reports */}
+          {activeTab === 'reports' && (
+            <div>
+              <div className="admin-top-bar">
+                <div className="admin-page-title">Reports & Analytics</div>
+                <button className="btn-primary" onClick={() => {
+                  const exportData = orders.map(o => ({
+                    'Customer Name': o.customerName,
+                    'Phone': o.phone,
+                    'Order Raised Timing': o.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A',
+                    'Expected Delivery Timing': getExpectedDelivery(o.createdAt, o.timeSlot),
+                    'Time Slot': o.timeSlot,
+                    'Order Status': o.status,
+                    'Delivery Status': o.status,
+                    'Items': o.items.map(i => i.name).join(', '),
+                    'Quantity': o.items.map(i => i.quantity).join(', '),
+                    'Price': o.totalAmount,
+                    'Payment Method': 'Online / COD',
+                    'Payment Status': 'Paid'
+                  }));
+                  const ws = XLSX.utils.json_to_sheet(exportData);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, "Orders");
+                  XLSX.writeFile(wb, "MyMorning_Orders_Report.xlsx");
+                }}>
+                  📥 Export to Excel
+                </button>
+              </div>
+              <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '12px', padding: '15px' }}>
+                <table className="orders-table" style={{ fontSize: '13px' }}>
+                  <thead>
+                    <tr>
+                      <th>Customer Name</th>
+                      <th>Phone</th>
+                      <th>Order Raised At</th>
+                      <th>Expected Delivery</th>
+                      <th>Status</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.slice(0, 50).map(o => (
+                      <tr key={o.id}>
+                        <td>{o.customerName}</td>
+                        <td>{o.phone}</td>
+                        <td>{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
+                        <td><strong style={{ color: 'var(--green-main)' }}>{getExpectedDelivery(o.createdAt, o.timeSlot)}</strong></td>
+                        <td>{o.status}</td>
+                        <td>{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
+                        <td>₹{o.totalAmount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Manual Order */}
+          {activeTab === 'manual_order' && (
+            <div>
+              <div className="admin-page-title">Manual Order Entry</div>
+              <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', maxWidth: '600px' }}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Customer Name</label>
+                    <input className="form-input" placeholder="e.g., John Doe" value={manualOrder.name} onChange={e => setManualOrder({...manualOrder, name: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone</label>
+                    <input className="form-input" placeholder="Phone Number" value={manualOrder.phone} onChange={e => setManualOrder({...manualOrder, phone: e.target.value})} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Address</label>
+                  <textarea className="form-input" placeholder="Full Delivery Address" rows="3" value={manualOrder.address} onChange={e => setManualOrder({...manualOrder, address: e.target.value})}></textarea>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Time Slot</label>
+                    <input className="form-input" placeholder="e.g., ASAP (Within 30 mins)" value={manualOrder.timeSlot} onChange={e => setManualOrder({...manualOrder, timeSlot: e.target.value})} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Total Amount (₹)</label>
+                    <input className="form-input" type="number" placeholder="250" value={manualOrder.price} onChange={e => setManualOrder({...manualOrder, price: e.target.value})} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Order Items Details</label>
+                  <textarea className="form-input" placeholder="e.g., 2x Avocado Toast, 1x Green Smoothie" rows="2" value={manualOrder.details} onChange={e => setManualOrder({...manualOrder, details: e.target.value})}></textarea>
+                </div>
+                <button className="btn-primary" onClick={handleManualOrderSubmit} style={{ marginTop: '15px' }}>
+                  <Plus size={16} /> Create Order
+                </button>
               </div>
             </div>
           )}
@@ -506,7 +707,7 @@ export default function Admin() {
 }
 
 function OrdersTable({ orders, onStatusChange }) {
-  const STATUS_OPTIONS = ['Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
+  const STATUS_OPTIONS = ['In Progress', 'Confirmed', 'Delivered', 'Denied'];
   return (
     <div className="orders-table-wrap">
       <table className="orders-table">
