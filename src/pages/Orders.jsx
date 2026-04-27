@@ -66,13 +66,12 @@ export default function Orders() {
   // Check for an active order (In Progress or Confirmed)
   const activeOrder = orders.find(o => ['In Progress', 'Confirmed'].includes(o.status));
   if (activeOrder) {
-    // Populate sessionStorage so tracker mounts natively correctly
+    // Sync storage for the tracker if the user clicks it
     sessionStorage.setItem('mm_order_id', activeOrder.orderId || activeOrder.id);
     sessionStorage.setItem('mm_checkout', JSON.stringify({
        form: { name: activeOrder.customerName, phone: activeOrder.phone, address: activeOrder.address },
        total: activeOrder.totalAmount
     }));
-    return <Navigate to="/order-confirmation" replace />;
   }
 
   return (
@@ -92,6 +91,25 @@ export default function Orders() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {activeOrder && (
+              <div className="card" style={{ padding: '24px', background: 'linear-gradient(135deg, #fdfaf6 0%, #f0f9eb 100%)', border: '2px solid var(--green-main)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, padding: '8px 16px', background: 'var(--green-main)', color: '#fff', fontSize: '12px', fontWeight: '800', borderBottomLeftRadius: '12px' }}>
+                  ACTIVE ORDER
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ marginBottom: '8px' }}>Your Breakfast is Brewing! ☕</h3>
+                    <p style={{ fontSize: '14px', color: '#6b8a5e', marginBottom: '16px' }}>Status: <strong style={{ color: 'var(--green-main)' }}>{activeOrder.status}</strong></p>
+                    <Link to="/order-confirmation" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                       Track Live Order <ChevronRight size={16} />
+                    </Link>
+                  </div>
+                  <div style={{ opacity: 0.2 }}>
+                    <RefreshCw className="spin" size={64} />
+                  </div>
+                </div>
+              </div>
+            )}
             {orders.map(order => (
               <div key={order.id} className="card" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

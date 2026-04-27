@@ -26,7 +26,7 @@ export default function OrderConfirmation() {
   const checkoutData = JSON.parse(sessionStorage.getItem('mm_checkout') || '{}');
   const { form = {}, total = 0 } = checkoutData;
 
-  const [liveStatus, setLiveStatus] = useState('In Progress');
+  const [liveStatus, setLiveStatus] = useState(null);
   const [lastChecked, setLastChecked] = useState(new Date());
   const [checking, setChecking] = useState(false);
 
@@ -64,6 +64,13 @@ export default function OrderConfirmation() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dateStr = tomorrow.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  if (!liveStatus) return (
+    <div className="empty-state" style={{ minHeight: '80vh' }}>
+      <RefreshCw className="spin" size={40} color="var(--green-main)" />
+      <p>Synchronizing with kitchen...</p>
+    </div>
+  );
 
   return (
     <div className="confirmation-page page-enter">
