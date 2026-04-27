@@ -50,7 +50,7 @@
 .planner-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -58,7 +58,7 @@
 
 .planner-modal {
   width: 90%;
-  max-width: 900px;
+  max-width: 950px;
   height: 80vh;
   background: #fff;
   border-radius: 28px;
@@ -66,14 +66,19 @@
   overflow: hidden;
 }
 
-/* DAYS */
+/* 🔥 LEFT DAYS (FIXED SCROLL) */
 .planner-days {
-  width: 180px;
+  width: 220px;
   background: #f8f9f5;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  overflow-y: auto;
+  /* ✅ FIX */
+  height: 100%;
+  /* ✅ FIX */
 }
 
 .day-tab {
@@ -83,6 +88,7 @@
   cursor: pointer;
   display: flex;
   justify-content: space-between;
+  font-size: 13px;
 }
 
 .day-tab.active {
@@ -103,6 +109,36 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 🔥 TOGGLE UI */
+.mode-toggle {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mode-toggle button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #d4e8c8;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mode-toggle button.active {
+  background: #2d6a1f;
+  color: #fff;
+  border-color: #2d6a1f;
 }
 
 .close-btn {
@@ -120,6 +156,8 @@
   display: grid;
   gap: 10px;
   overflow-y: auto;
+  flex: 1;
+  /* ✅ FIX scrolling inside */
 }
 
 .planner-item {
@@ -130,9 +168,8 @@
   border: 1px solid #e0eacb;
 }
 
-/* 🔥 DARKER ADD BUTTON */
 .add-btn {
-  background: #cfe8c6; /* darker than before */
+  background: #cfe8c6;
   color: #1a2e12;
   border: none;
   padding: 6px 14px;
@@ -167,7 +204,7 @@
 
 /* SEND */
 .planner-send {
-  margin-top: 16px;
+  margin-top: 12px;
   padding: 16px;
   border-radius: 14px;
   background: #1a2e12;
@@ -175,4 +212,64 @@
   font-weight: 800;
   border: none;
   cursor: pointer;
+}
+
+/* SEARCH */
+.planner-search-container {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f8f9f5;
+  border: 1.5px solid #d4e8c8;
+  border-radius: 12px;
+  padding: 8px 14px;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.search-box:focus-within {
+  border-color: #2d6a1f;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a2e12;
+  outline: none;
+}
+
+.clear-search {
+  background: #eee;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+}
+
+.no-results {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
