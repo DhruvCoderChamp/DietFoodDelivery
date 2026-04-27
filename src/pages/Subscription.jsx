@@ -142,36 +142,107 @@ ${routineText}
     window.open(`https://api.whatsapp.com/send?phone=919187532042&text=${encoded}`);
   };
 
+  const hasPlan = Object.values(mealPlan).some(meals => meals && meals.length > 0);
+
   return (
-    <div className="sub-dashboard">
-
-      {/* CTA */}
-      <div className="planner-cta-card">
-        <div className="cta-text">
-          <h2>Build Your Breakfast Plan</h2>
-          <p>Select your plan and start customizing.</p>
-
-          {/* PLAN OPTIONS */}
-          <div className="plan-options">
-            {PLANS.map(plan => (
-              <button
-                key={plan.id}
-                className={`plan-chip ${selectedPlan === plan.id ? 'active' : ''}`}
-                onClick={() => setSelectedPlan(plan.id)}
-              >
-                {plan.label}
+    <div className="sub-dashboard page-enter">
+      
+      {hasPlan ? (
+        <div className="active-plan-container">
+          <div className="active-plan-header">
+            <div>
+              <h1 className="active-plan-title">Your Healthy Routine 🌿</h1>
+              <p className="active-plan-subtitle">Here is the routine you've built for the next <strong>{selectedPlan} Days</strong>.</p>
+            </div>
+            <div className="active-plan-actions">
+              <button className="btn-outline" onClick={() => setShowPlanner(true)}>✏️ Edit Plan</button>
+              <button className="btn-primary" onClick={handleSendToWhatsApp}>
+                <Send size={16} /> Send to WhatsApp
               </button>
-            ))}
+            </div>
+          </div>
+
+          <div className="active-plan-stats">
+            <div className="stat-card">
+              <span className="stat-label">Plan Duration</span>
+              <span className="stat-value">{selectedPlan} Days</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Planning Mode</span>
+              <span className="stat-value">{mode === 'weekly' ? 'Weekly' : 'Date-wise'}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Total Items</span>
+              <span className="stat-value">{Object.values(mealPlan).flat().length} Selected</span>
+            </div>
+          </div>
+
+          <div className="active-plan-grid">
+            {DAYS.map(day => {
+              const dayMeals = mealPlan[day] || [];
+              return (
+                <div key={day} className={`day-preview-card ${dayMeals.length === 0 ? 'empty' : ''}`}>
+                  <div className="day-preview-header">
+                    <span className="day-name">{day}</span>
+                    {dayMeals.length > 0 && <span className="item-count">{dayMeals.length} items</span>}
+                  </div>
+                  <div className="day-preview-content">
+                    {dayMeals.length > 0 ? (
+                      <ul className="selected-items-list">
+                        {dayMeals.map((m, idx) => <li key={idx}>🥗 {m}</li>)}
+                      </ul>
+                    ) : (
+                      <span className="no-items-text">No meals selected</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div style={{ marginTop: '40px', textAlign: 'center' }}>
+             <button 
+               className="btn-ghost" 
+               style={{ color: '#e74c3c' }}
+               onClick={() => {
+                 if (window.confirm("This will permanently delete your current routine. Continue?")) {
+                   setMealPlan({});
+                   localStorage.removeItem('mm_sub_data');
+                 }
+               }}
+             >
+               🗑️ Clear My Routine
+             </button>
           </div>
         </div>
+      ) : (
+        /* INITIAL CTA */
+        <div className="planner-cta-card">
+          <div className="cta-text">
+            <h2>Build Your Breakfast Plan</h2>
+            <p>Select your plan and start customizing.</p>
 
-        <button 
-          className="planner-cta-btn"
-          onClick={() => setShowPlanner(true)}
-        >
-          <Send size={18}/> Start Planning
-        </button>
-      </div>
+            <div className="plan-options">
+              {PLANS.map(plan => (
+                <button
+                  key={plan.id}
+                  className={`plan-chip ${selectedPlan === plan.id ? 'active' : ''}`}
+                  onClick={() => setSelectedPlan(plan.id)}
+                >
+                  {plan.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button 
+            className="planner-cta-btn"
+            onClick={() => setShowPlanner(true)}
+          >
+            <Send size={18}/> Start Planning
+          </button>
+        </div>
+      )}
 
       {/* MODAL */}
       {showPlanner && (
