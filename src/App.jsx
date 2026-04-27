@@ -40,7 +40,7 @@ function RequireAdmin({ children }) {
 function AppContent() {
   const location = useLocation();
   const hideFooter = ['/login', '/admin'].some(path => location.pathname.startsWith(path));
-  const hidenavbar = location.pathname.startsWith('/login');
+  const hidenavbar = ['/login', '/admin'].some(path => location.pathname.startsWith(path));
 
   return (
     <>

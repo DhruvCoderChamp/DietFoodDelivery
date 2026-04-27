@@ -75,6 +75,7 @@
 .admin-user-info {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 15px;
   margin-top: auto;
@@ -98,6 +99,22 @@
 }
 .admin-user-name { font-weight: 700; font-size: 14px; color: #fff; }
 .admin-user-role { font-size: 12px; color: var(--green-light); }
+.admin-logout-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-logout-btn:hover {
+  background: rgba(255,50,50,0.8);
+}
 
 /* Main Content Area */
 .admin-main {
@@ -163,8 +180,19 @@
 .quick-actions { display: flex; gap: 15px; flex-wrap: wrap; }
 
 /* Top Bar */
-.admin-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.admin-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 15px; flex-wrap: wrap; }
 .admin-top-bar .admin-page-title { margin-bottom: 0; }
+
+/* Calendar Headers */
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.calendar-section-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
 
 /* Menu / Products Grid */
 .admin-menu-grid {
@@ -374,7 +402,10 @@
   .sidebar-close-btn { display: flex; }
   
   /* Main adjusts to full width */
-  .admin-main { margin-left: 0; padding: 84px 20px 24px; width: 100%; box-sizing: border-box; }
+  .admin-main { margin-left: 0; padding: 120px 20px 24px; width: 100%; box-sizing: border-box; }
+  
+  .mobile-admin-tabs::-webkit-scrollbar { display: none; }
+  .mobile-admin-tabs { -ms-overflow-style: none; scrollbar-width: none; }
   
   .admin-page-title { font-size: 24px; margin-bottom: 20px; }
   .stat-card { padding: 20px; min-height: 120px; }
@@ -441,6 +472,10 @@
   .order-phone { margin-top: 4px; }
   .map-link { justify-content: flex-end; }
   .status-select { width: auto; min-width: 120px; }
+  
+  .calendar-grid { grid-template-columns: 1fr; gap: 12px; }
+  .calendar-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .calendar-section-title { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {

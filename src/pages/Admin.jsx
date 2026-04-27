@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone, GripVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone, GripVertical, LogOut } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -317,16 +317,48 @@ export default function Admin() {
   return (
     <div className={`admin-page ${sidebarOpen ? 'sidebar-open' : ''} page-enter`}>
       {/* Mobile Header Bar */}
-      <header className="admin-mobile-header">
-        <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
-          <MenuIcon size={24} />
-        </button>
-        <span className="mobile-header-title">
-          {activeTab === 'dashboard' ? 'Overview' : activeTab === 'orders' ? 'Orders' : 'Products'}
-        </span>
-        <button className="mobile-add-btn" onClick={() => { setActiveTab('menu'); setShowAddModal(true); }}>
-          <Plus size={20} />
-        </button>
+      <header className="admin-mobile-header" style={{ flexDirection: 'column', height: 'auto', padding: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '15px 20px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div className="admin-logo" style={{ margin: 0, padding: 0, border: 'none' }}>
+            <img src={logoImg} alt="My Morning" style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 8, background: 'var(--green-main)', padding: 4 }} />
+            <div>
+              <div className="admin-logo-name" style={{ color: '#111827', fontSize: '16px' }}>My Morning</div>
+              <div className="admin-logo-tag" style={{ color: 'var(--green-main)' }}>Admin Panel</div>
+            </div>
+          </div>
+          <button className="admin-logout-btn" style={{ background: '#c0392b', width: 36, height: 36 }} onClick={() => { authFetch('/api/auth/logout', {method: 'POST'}); window.location.href = '/login'; }}>
+            <LogOut size={16} />
+          </button>
+        </div>
+        <div className="mobile-admin-tabs" style={{ display: 'flex', overflowX: 'auto', width: '100%', padding: '0 20px', gap: '20px', background: '#fafafa', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          {[
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'orders', label: 'Orders' },
+            { id: 'menu', label: 'Products' },
+            { id: 'calendar', label: 'Calendar' },
+            { id: 'reports', label: 'Reports' },
+            { id: 'manual_order', label: 'Manual Order' },
+          ].map(tab => (
+            <button 
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: 'none', 
+                border: 'none', 
+                whiteSpace: 'nowrap', 
+                fontSize: '14px', 
+                fontWeight: activeTab === tab.id ? 700 : 500, 
+                color: activeTab === tab.id ? 'var(--green-main)' : '#6B7280', 
+                borderBottom: activeTab === tab.id ? '3px solid var(--green-main)' : '3px solid transparent', 
+                padding: '12px 0',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       {/* Sidebar Overlay */}
@@ -368,11 +400,16 @@ export default function Admin() {
           </nav>
           <div className="sidebar-divider"></div>
           <div className="admin-user-info">
-            <div className="admin-avatar">{user.name[0]}</div>
-            <div>
-              <div className="admin-user-name">{user.name}</div>
-              <div className="admin-user-role">Administrator</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="admin-avatar">{user.name[0]}</div>
+              <div>
+                <div className="admin-user-name">{user.name}</div>
+                <div className="admin-user-role">Administrator</div>
+              </div>
             </div>
+            <button className="admin-logout-btn" onClick={() => { authFetch('/api/auth/logout', {method: 'POST'}); window.location.href = '/login'; }}>
+              <LogOut size={16} />
+            </button>
           </div>
         </aside>
 
@@ -424,23 +461,6 @@ export default function Admin() {
           {/* Menu */}
           {activeTab === 'menu' && (
             <div>
-              <div className="admin-mobile-header">
-          <button className="menu-toggle-btn" onClick={() => setSidebarOpen(true)}>
-            <MenuIcon size={24} />
-          </button>
-          <div className="mobile-header-title">Admin</div>
-          <button 
-            type="button"
-            className="mobile-add-btn" 
-            onClick={() => {
-              setShowAddModal(true);
-              setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
-              setEditItem(null);
-            }}
-          >
-            <Plus size={20} />
-          </button>
-        </div>
               <div className="admin-top-bar">
                 <div className="admin-page-title">Products ({items.length})</div>
                 <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
@@ -468,15 +488,15 @@ export default function Admin() {
             <div>
               <div className="admin-page-title">Calendar View</div>
               <div style={{ padding: '20px', background: '#fff', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <div className="calendar-header">
                   <p style={{ margin: 0 }}>Select a date to view orders:</p>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(prev => prev - 1)}>← Previous Week</button>
                     <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(0)}>Today</button>
                     <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(prev => prev + 1)}>Next Week →</button>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
+                <div className="calendar-grid">
                   {[...Array(7)].map((_, i) => {
                     const d = new Date();
                     d.setDate(d.getDate() - 3 + i + (calendarOffset * 7));
@@ -503,7 +523,7 @@ export default function Admin() {
                 </div>
               </div>
               <div style={{ marginTop: '24px' }}>
-                <div className="admin-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="admin-section-title calendar-section-title">
                   <span>Orders for {new Date(selectedCalendarDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
                   <button 
                     className="btn-primary" 
@@ -585,14 +605,14 @@ export default function Admin() {
                   </thead>
                   <tbody>
                     {orders.slice(0, 50).map(o => (
-                      <tr key={o.id}>
-                        <td>{o.customerName}</td>
-                        <td>{o.phone}</td>
-                        <td>{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
-                        <td><strong style={{ color: 'var(--green-main)' }}>{getExpectedDelivery(o.createdAt, o.timeSlot)}</strong></td>
-                        <td>{o.status}</td>
-                        <td>{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
-                        <td>₹{o.totalAmount}</td>
+                      <tr key={o.id} className="order-row">
+                        <td data-label="Customer Name">{o.customerName}</td>
+                        <td data-label="Phone">{o.phone}</td>
+                        <td data-label="Order Raised At">{o.createdAt ? new Date(o.createdAt).toLocaleString() : '-'}</td>
+                        <td data-label="Expected Delivery"><strong style={{ color: 'var(--green-main)' }}>{getExpectedDelivery(o.createdAt, o.timeSlot)}</strong></td>
+                        <td data-label="Status">{o.status}</td>
+                        <td data-label="Items">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
+                        <td data-label="Total">₹{o.totalAmount}</td>
                       </tr>
                     ))}
                   </tbody>
