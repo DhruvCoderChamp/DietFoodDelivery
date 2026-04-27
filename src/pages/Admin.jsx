@@ -491,8 +491,36 @@ export default function Admin() {
                 </div>
               </div>
               <div style={{ marginTop: '24px' }}>
-                <div className="admin-section-title">
-                  Orders for {new Date(selectedCalendarDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                <div className="admin-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Orders for {new Date(selectedCalendarDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+                  <button 
+                    className="btn-primary" 
+                    style={{ fontSize: '12px', padding: '6px 12px' }}
+                    onClick={() => {
+                      const dayOrders = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === selectedCalendarDate);
+                      if (dayOrders.length === 0) {
+                        alert("No orders to export for this date.");
+                        return;
+                      }
+                      const exportData = dayOrders.map(o => ({
+                        'Order ID': o.orderId,
+                        'Customer Name': o.customerName,
+                        'Phone': o.phone,
+                        'Items': o.items.map(i => `${i.quantity}x ${i.name}`).join(', '),
+                        'Total Amount': `₹${o.totalAmount}`,
+                        'Address': o.address,
+                        'Status': o.status,
+                        'Time Slot': o.timeSlot || 'N/A',
+                        'Order Time': o.createdAt ? new Date(o.createdAt).toLocaleString() : 'N/A'
+                      }));
+                      const ws = XLSX.utils.json_to_sheet(exportData);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, "Daily Orders");
+                      XLSX.writeFile(wb, `Orders_Report_${selectedCalendarDate.replace(/ /g, '_')}.xlsx`);
+                    }}
+                  >
+                    📥 Export Day to Excel
+                  </button>
                 </div>
                 <OrdersTable 
                   orders={orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === selectedCalendarDate)} 
