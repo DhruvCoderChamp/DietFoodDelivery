@@ -19,12 +19,31 @@ export default function Subscription() {
   const { user } = useAuth();
   const { products } = useProducts();
 
-  const [selectedPlan, setSelectedPlan] = useState(7);
-  const [mode, setMode] = useState('weekly'); // weekly | date
+  // 🔹 Load saved data from localStorage
+  const getInitialState = () => {
+    try {
+      const saved = localStorage.getItem('mm_sub_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) { return null; }
+  };
+
+  const initialState = getInitialState();
+
+  const [selectedPlan, setSelectedPlan] = useState(initialState?.plan || 7);
+  const [mode, setMode] = useState(initialState?.mode || 'weekly'); // weekly | date
   const [showPlanner, setShowPlanner] = useState(false);
   const [activeDay, setActiveDay] = useState('Sunday');
-  const [mealPlan, setMealPlan] = useState({});
+  const [mealPlan, setMealPlan] = useState(initialState?.meals || {});
   const [searchTerm, setSearchTerm] = useState('');
+
+  // 🔹 Persist state to localStorage
+  useEffect(() => {
+    localStorage.setItem('mm_sub_data', JSON.stringify({
+      plan: selectedPlan,
+      mode: mode,
+      meals: mealPlan
+    }));
+  }, [selectedPlan, mode, mealPlan]);
 
   // 🔹 Combine static quick picks with dynamic products
   const QUICK_PICKS = [
@@ -63,14 +82,13 @@ export default function Subscription() {
   // 🔹 Final days based on mode
   const DAYS = mode === 'weekly' ? WEEK_DAYS : getDateDays();
 
-  // 🔹 Reset when mode or plan changes
+  // 🔹 Update active day when mode or plan changes, but don't wipe the whole plan
   useEffect(() => {
     const firstDay =
       mode === 'weekly'
         ? WEEK_DAYS[0]
         : getDateDays()[0];
 
-    setMealPlan({});
     setActiveDay(firstDay);
   }, [mode, selectedPlan]);
 
@@ -185,12 +203,25 @@ ${routineText}
               <div className="planner-header">
                 <h3>{activeDay}</h3>
 
-                <button 
-                  className="close-btn"
-                  onClick={() => setShowPlanner(false)}
-                >
-                  ✕
-                </button>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button 
+                    className="btn-ghost" 
+                    style={{ fontSize: '11px', color: '#e74c3c' }}
+                    onClick={() => {
+                      if (window.confirm("Clear your entire selection and start over?")) {
+                        setMealPlan({});
+                      }
+                    }}
+                  >
+                    Reset Plan
+                  </button>
+                  <button 
+                    className="close-btn"
+                    onClick={() => setShowPlanner(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {/* 🔥 TOGGLE INSIDE MODAL */}
