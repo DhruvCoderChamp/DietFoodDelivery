@@ -35,6 +35,7 @@ export default function Admin() {
   // Manual Order state
   const [manualOrder, setManualOrder] = useState({ name: '', phone: '', address: '', timeSlot: '', details: '', price: '' });
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(new Date().toDateString());
+  const [calendarOffset, setCalendarOffset] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -467,19 +468,30 @@ export default function Admin() {
             <div>
               <div className="admin-page-title">Calendar View</div>
               <div style={{ padding: '20px', background: '#fff', borderRadius: '12px' }}>
-                <p>Select a date to view orders:</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', marginTop: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                  <p style={{ margin: 0 }}>Select a date to view orders:</p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(prev => prev - 1)}>← Previous Week</button>
+                    <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(0)}>Today</button>
+                    <button className="btn-ghost" style={{ fontSize: '12px' }} onClick={() => setCalendarOffset(prev => prev + 1)}>Next Week →</button>
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
                   {[...Array(7)].map((_, i) => {
                     const d = new Date();
-                    d.setDate(d.getDate() - 3 + i);
+                    d.setDate(d.getDate() - 3 + i + (calendarOffset * 7));
                     const dayOrders = orders.filter(o => {
                       if (!o.createdAt) return false;
                       const oDate = new Date(o.createdAt);
                       return oDate.toDateString() === d.toDateString();
                     });
+                    const isToday = d.toDateString() === new Date().toDateString();
                     return (
-                      <div key={i} style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: (selectedCalendarDate === d.toDateString()) ? '#d4e8c8' : (dayOrders.length > 0 ? '#f0f9eb' : '#fafafa'), transform: selectedCalendarDate === d.toDateString() ? 'scale(1.02)' : 'none', transition: 'all 0.2s', boxShadow: selectedCalendarDate === d.toDateString() ? '0 4px 12px rgba(0,0,0,0.1)' : 'none' }} onClick={() => setSelectedCalendarDate(d.toDateString())}>
-                        <div style={{ fontWeight: 'bold' }}>{d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                      <div key={i} style={{ padding: '15px', border: isToday ? '2px solid var(--green-main)' : '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', background: (selectedCalendarDate === d.toDateString()) ? '#d4e8c8' : (dayOrders.length > 0 ? '#f0f9eb' : '#fafafa'), transform: selectedCalendarDate === d.toDateString() ? 'scale(1.02)' : 'none', transition: 'all 0.2s', boxShadow: selectedCalendarDate === d.toDateString() ? '0 4px 12px rgba(0,0,0,0.1)' : 'none' }} onClick={() => setSelectedCalendarDate(d.toDateString())}>
+                        <div style={{ fontWeight: 'bold', color: isToday ? 'var(--green-main)' : 'inherit' }}>
+                          {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          {isToday && <div style={{ fontSize: '10px', textTransform: 'uppercase' }}>Today</div>}
+                        </div>
                         <div style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
                           {dayOrders.slice(0, 2).map((o, idx) => <div key={idx}>📦 {o.customerName}</div>)}
                           {dayOrders.length > 2 && <div style={{ color: '#3498db' }}>+{dayOrders.length - 2} more</div>}
