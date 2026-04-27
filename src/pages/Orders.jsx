@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { 
   Package, Clock, CheckCircle, ExternalLink, ChevronRight, 
-  MapPin, ShoppingBag, Loader, AlertCircle 
+  MapPin, ShoppingBag, Loader, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { Link, Navigate } from 'react-router-dom';
 
