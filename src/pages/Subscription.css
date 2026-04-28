@@ -470,16 +470,26 @@
     width: 100%;
     height: auto;
     flex-direction: row;
+    flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 12px;
+    padding: 12px 16px;
     border-right: none;
     border-bottom: 1px solid #e8f5e0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .planner-days::-webkit-scrollbar {
+    display: none;
   }
 
   .day-tab {
     flex: 0 0 auto;
     white-space: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
   .planner-content {
