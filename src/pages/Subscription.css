@@ -163,6 +163,7 @@
 .planner-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 14px;
   border-radius: 14px;
   border: 1px solid #e0eacb;
@@ -427,5 +428,70 @@
   }
   .active-plan-container {
     padding: 20px;
+  }
+  
+  .active-plan-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .active-plan-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* CTA Mobile Fixes */
+  .planner-cta-card {
+    flex-direction: column;
+    margin: 20px 16px;
+    padding: 24px;
+    text-align: center;
+    gap: 24px;
+  }
+  
+  .plan-options {
+    justify-content: center;
+  }
+
+  .planner-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Planner Modal Mobile Fixes */
+  .planner-modal {
+    flex-direction: column;
+    height: 90vh;
+    border-radius: 20px;
+    width: 95%;
+  }
+
+  .planner-days {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 12px;
+    border-right: none;
+    border-bottom: 1px solid #e8f5e0;
+  }
+
+  .day-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .planner-content {
+    padding: 16px;
+  }
+
+  .planner-header h3 {
+    font-size: 20px;
+  }
+
+  .planner-item {
+    align-items: center;
+    gap: 10px;
   }
 }
