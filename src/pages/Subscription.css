@@ -31,7 +31,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 40px;
+  margin: 40px auto;
+  max-width: 1120px;
+  box-sizing: border-box;
 }
 
 .planner-cta-btn {
@@ -42,8 +44,11 @@
   font-weight: 800;
   border: none;
   display: flex;
+  align-items: center;
   gap: 8px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* MODAL */
@@ -54,6 +59,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .planner-modal {
@@ -66,7 +74,7 @@
   overflow: hidden;
 }
 
-/* 🔥 LEFT DAYS (FIXED SCROLL) */
+/* LEFT DAYS (FIXED SCROLL) */
 .planner-days {
   width: 220px;
   background: #f8f9f5;
@@ -74,11 +82,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-
   overflow-y: auto;
-  /* ✅ FIX */
   height: 100%;
-  /* ✅ FIX */
+  flex-shrink: 0;
 }
 
 .day-tab {
@@ -88,6 +94,7 @@
   cursor: pointer;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 13px;
 }
 
@@ -111,6 +118,7 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  min-width: 0;
 }
 
 .planner-header {
@@ -120,7 +128,7 @@
   flex-shrink: 0;
 }
 
-/* 🔥 TOGGLE UI */
+/* TOGGLE UI */
 .mode-toggle {
   display: flex;
   gap: 10px;
@@ -151,6 +159,10 @@
   width: 36px;
   height: 36px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 /* ITEMS */
@@ -160,7 +172,6 @@
   gap: 10px;
   overflow-y: auto;
   flex: 1;
-  /* ✅ FIX scrolling inside */
 }
 
 .planner-item {
@@ -170,6 +181,13 @@
   padding: 14px;
   border-radius: 14px;
   border: 1px solid #e0eacb;
+  gap: 10px;
+}
+
+.planner-item > span {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .add-btn {
@@ -180,6 +198,10 @@
   border-radius: 10px;
   font-weight: 800;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 /* STEPPER */
@@ -190,6 +212,7 @@
   border: 1.5px solid #2d6a1f;
   border-radius: 999px;
   padding: 4px 10px;
+  flex-shrink: 0;
 }
 
 .qty-stepper button {
@@ -217,6 +240,7 @@
   border: none;
   cursor: pointer;
   flex-shrink: 0;
+  width: 100%;
 }
 
 /* SEARCH */
@@ -251,6 +275,7 @@
   font-weight: 600;
   color: #1a2e12;
   outline: none;
+  min-width: 0;
 }
 
 .clear-search {
@@ -274,17 +299,13 @@
   font-style: italic;
 }
 
-.add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
 /* ACTIVE PLAN DASHBOARD */
 .active-plan-container {
   padding: 40px;
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .active-plan-header {
@@ -294,6 +315,8 @@
   margin-bottom: 32px;
   border-bottom: 1.5px solid #d4e8c8;
   padding-bottom: 24px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .active-plan-title {
@@ -311,12 +334,13 @@
 .active-plan-actions {
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .active-plan-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
   margin-bottom: 40px;
 }
 
@@ -347,7 +371,7 @@
 
 .active-plan-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
 }
 
@@ -425,35 +449,56 @@
   font-style: italic;
 }
 
+/* ─── MOBILE RESPONSIVE ─────────────────────────── */
 @media (max-width: 768px) {
+
+  /* Active Plan Header */
   .active-plan-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
+    gap: 16px;
   }
+
+  .active-plan-title {
+    font-size: 24px;
+  }
+
   .active-plan-container {
-    padding: 20px;
+    padding: 16px;
   }
-  
+
   .active-plan-actions {
     width: 100%;
     flex-direction: column;
   }
-  
+
   .active-plan-actions button {
     width: 100%;
     justify-content: center;
   }
 
-  /* CTA Mobile Fixes */
+  /* Stats grid — 1 column on very small, 2 on medium */
+  .active-plan-stats {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  /* Plan grid — 1 column */
+  .active-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* CTA Card */
   .planner-cta-card {
     flex-direction: column;
-    margin: 20px 16px;
+    margin: 16px;
     padding: 24px;
     text-align: center;
     gap: 24px;
+    border-radius: 24px;
   }
-  
+
   .plan-options {
     justify-content: center;
   }
@@ -463,15 +508,21 @@
     justify-content: center;
   }
 
-  /* Planner Modal Mobile Fixes */
-  .planner-modal {
-    flex-direction: column;
-    height: 90dvh;
-    max-height: 900px;
-    border-radius: 20px;
-    width: 95%;
+  /* Planner Modal */
+  .planner-overlay {
+    padding: 8px;
+    align-items: flex-end;
   }
 
+  .planner-modal {
+    flex-direction: column;
+    height: 92dvh;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+  }
+
+  /* Horizontal scrollable day tabs */
   .planner-days {
     width: 100%;
     height: auto;
@@ -479,14 +530,15 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 12px 16px;
+    padding: 10px 16px;
     border-right: none;
     border-bottom: 1px solid #e8f5e0;
     scrollbar-width: none;
     -ms-overflow-style: none;
     flex-shrink: 0;
+    gap: 8px;
   }
-  
+
   .planner-days::-webkit-scrollbar {
     display: none;
   }
@@ -497,18 +549,61 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
+    padding: 8px 14px;
   }
 
+  /* Right content */
   .planner-content {
-    padding: 16px;
+    padding: 14px 16px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .planner-header {
+    gap: 8px;
   }
 
   .planner-header h3 {
+    font-size: 18px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Mode toggle */
+  .mode-toggle {
+    margin-top: 10px;
+  }
+
+  /* Item rows — label wraps, controls stay right */
+  .planner-item {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  /* Send button */
+  .planner-send {
+    margin-top: 10px;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .active-plan-title {
     font-size: 20px;
   }
 
-  .planner-item {
-    align-items: center;
-    gap: 10px;
+  .active-plan-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .planner-cta-card {
+    margin: 10px;
+    padding: 20px;
   }
 }
