@@ -196,7 +196,7 @@ export default function Checkout() {
     } catch (err) { console.error('Failed to save order to DB', err); }
 
     // 2. Build WhatsApp message with full order details
-    const itemLines = items.map(i => `• ${i.name} × ${i.quantity} — ₹${i.price * i.quantity}`).join('%0a');
+    const itemLines = items.map(i => `• ${i.name} × ${i.quantity} — ₹${i.price * i.quantity}`).join('\n');
     let pureAddress = form.address;
     let locationLink = '';
     
@@ -207,10 +207,8 @@ export default function Checkout() {
       pureAddress = form.address
          .replace(/(\n\n👉 Google Map Pin: .*)|(\n👉 Map: .*)|(\[GPS Detected Location\]\n)/g, '');
     }
-    
-    pureAddress = pureAddress.replace(/\n/g, '%0a');
 
-    let textLines = [
+    const rawMsg = [
       `🌿 *New Order — My Morning*`,
       ``,
       `━━━━━━━━━━━━━━━`,
@@ -218,18 +216,18 @@ export default function Checkout() {
       `🧾 *Order ID:* ${savedOrderId}`,
       ``,
       `👤 *Customer Details*`,
-      `Name: ${form.name}  `,
-      `Phone: ${form.phone}  `,
+      `Name: ${form.name}`,
+      `Phone: ${form.phone}`,
       ``,
       `📍 *Delivery Address*`,
-      `${pureAddress}  `,
-      form.area ? `Area: ${form.area}  ` : null,
-      form.instructions ? `Note: ${form.instructions}  ` : null,
+      `${pureAddress}`,
+      form.area ? `Area: ${form.area}` : null,
+      form.instructions ? `Note: ${form.instructions}` : null,
       ``,
       `🕒 *Delivery Slot:* ${form.timeSlot} ⚡`,
       `*(Guaranteed delivery within 30 mins)*`,
       ``,
-      locationLink ? `📌 *Location:*  \n${locationLink}` : null,
+      locationLink ? `📌 *Location:*\n${locationLink}` : null,
       locationLink ? `` : null,
       `━━━━━━━━━━━━━━━`,
       ``,
@@ -237,20 +235,19 @@ export default function Checkout() {
       `${itemLines}`,
       ``,
       `💰 *Billing*`,
-      `Subtotal: ₹${totalPrice}  `,
-      `Delivery: ₹${deliveryFee}  `,
-      `*Total: ₹${total}*  `,
+      `Subtotal: ₹${totalPrice}`,
+      `Delivery: ₹${deliveryFee}`,
+      `*Total: ₹${total}*`,
       ``,
       `━━━━━━━━━━━━━━━`,
       ``,
       `🙏 Please confirm this order and share payment details.`,
       ``,
       `💚 *My Morning Team*`
-    ];
+    ].filter(line => line !== null).join('\n');
 
-    const text = textLines.filter(line => line !== null).join('%0a').replace(/\n/g, '%0a');
-
-    window.open(`https://wa.me/919187532042?text=${text}`, '_blank');
+    const encoded = encodeURIComponent(rawMsg);
+    window.open(`https://api.whatsapp.com/send?phone=919187532042&text=${encoded}`, '_blank');
     
     // Show confirmation
     alert("Order request sent successfully!");
