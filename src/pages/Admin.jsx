@@ -157,7 +157,7 @@ export default function Admin() {
 
       if (status === 'Confirmed' && orderToUpdate) {
         const text = `Hi ${orderToUpdate.customerName}, your order (${orderToUpdate.orderId}) has been Confirmed by My Morning! 🌅%0a%0aIt will be delivered as requested at ${orderToUpdate.timeSlot || 'the chosen time'}. Thank you! 💚`;
-        window.open(`https://wa.me/91${orderToUpdate.phone}?text=${text}`, '_blank');
+        window.location.href = `https://wa.me/91${orderToUpdate.phone}?text=${text}`;
       }
     } catch (err) { console.error('Error updating order', err); }
   };

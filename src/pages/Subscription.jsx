@@ -139,7 +139,7 @@ ${routineText}
 `;
 
     const encoded = encodeURIComponent(rawMsg);
-    window.open(`https://api.whatsapp.com/send?phone=919187532042&text=${encoded}`);
+    window.location.href = `https://wa.me/919187532042?text=${encoded}`;
   };
 
   const hasPlan = Object.values(mealPlan).some(meals => meals && meals.length > 0);

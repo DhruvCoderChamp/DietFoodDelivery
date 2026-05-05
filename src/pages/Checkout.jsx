@@ -247,12 +247,8 @@ export default function Checkout() {
     ].filter(line => line !== null).join('\n');
 
     const encoded = encodeURIComponent(rawMsg);
-    window.open(`https://api.whatsapp.com/send?phone=919187532042&text=${encoded}`, '_blank');
     
-    // Show confirmation
-    alert("Order request sent successfully!");
-    
-    // 3. Save to localStorage + session + clear cart + redirect
+    // Save to localStorage + session + clear cart
     localStorage.setItem('mm_saved_address', JSON.stringify({
       name: form.name,
       phone: form.phone,
@@ -264,7 +260,15 @@ export default function Checkout() {
     sessionStorage.setItem('mm_order_id', savedOrderId);
     sessionStorage.setItem('mm_checkout', JSON.stringify({ form, items, total, deliveryFee }));
     clearCart();
+
+    // Show confirmation
+    alert("Order request sent successfully!");
+    
+    // Navigate to confirmation page
     navigate('/order-confirmation');
+
+    // Trigger WhatsApp via top-level navigation to avoid iOS popup blockers
+    window.location.href = `https://wa.me/919187532042?text=${encoded}`;
   };
 
   return (
