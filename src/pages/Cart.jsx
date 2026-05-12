@@ -44,7 +44,7 @@ export default function Cart() {
             {totalPrice < 199 && (
               <div className="free-delivery-banner">
                 <Tag size={14} />
-                Add <strong>₹{199 - totalPrice}</strong> more for FREE delivery!
+                Your order is eligible for <strong>FREE delivery!</strong>
                 <div className="free-delivery-bar">
                   <div className="free-delivery-fill" style={{ width: `${Math.min((totalPrice / 199) * 100, 100)}%` }}></div>
                 </div>
