@@ -25,7 +25,7 @@ export default function Cart() {
     );
   }
 
-  const deliveryFee = totalPrice >= 199 ? 0 : 30;
+  const deliveryFee = totalPrice >= 0 ? 0 : 30;
   const finalTotal = totalPrice + deliveryFee;
 
   return (
