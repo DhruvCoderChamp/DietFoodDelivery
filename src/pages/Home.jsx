@@ -91,7 +91,7 @@ export default function Home() {
                 Order Now <ArrowRight size={18} />
               </Link>
               <Link to="/subscription" className="btn-outline">
-                View Meal Plans
+                 Subscribe Now
               </Link>
             </div>
             <div className="hero-stats">
