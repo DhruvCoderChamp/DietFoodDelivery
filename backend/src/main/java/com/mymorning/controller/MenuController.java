@@ -13,12 +13,17 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @RestController
 public class MenuController {
 
     @Autowired
     private MenuItemRepository menuItemRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional(readOnly = true)
     @GetMapping("/api/products")
@@ -32,6 +37,7 @@ public class MenuController {
                 PageRequest.of(page, size, Sort.by("orderIndex").ascending())
             );
             itemPage.getContent().forEach(item -> {
+                entityManager.detach(item);
                 if (item.getImage() != null && item.getImage().startsWith("data:image")) {
                     item.setImage(null);
                 }
@@ -41,6 +47,7 @@ public class MenuController {
             // Legacy/Full list request
             List<MenuItem> items = menuItemRepository.findAll(Sort.by("orderIndex").ascending());
             items.forEach(item -> {
+                entityManager.detach(item);
                 if (item.getImage() != null && item.getImage().startsWith("data:image")) {
                     item.setImage(null);
                 }
@@ -52,15 +59,31 @@ public class MenuController {
     @GetMapping("/api/products/{id}/image")
     public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
         MenuItem item = menuItemRepository.findById(id).orElse(null);
-        if (item == null || item.getImage() == null || !item.getImage().contains(",")) {
+        if (item == null || item.getImage() == null) {
             return ResponseEntity.notFound().build();
         }
 
         try {
             String img = item.getImage();
-            String base64Content = img.split(",")[1];
+            
+            if (img.startsWith("http")) {
+                // If it's an external URL, just redirect
+                return ResponseEntity.status(302).header("Location", img).build();
+            }
+
+            String base64Content;
+            String contentType = "image/jpeg"; // default
+
+            if (img.contains(",")) {
+                base64Content = img.split(",")[1];
+                contentType = img.split(";")[0].split(":")[1];
+            } else {
+                base64Content = img;
+            }
+
+            // Clean up base64 string
+            base64Content = base64Content.replaceAll("\\s+", "");
             byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Content);
-            String contentType = img.split(";")[0].split(":")[1];
 
             return ResponseEntity.ok()
                     .header("Content-Type", contentType)
