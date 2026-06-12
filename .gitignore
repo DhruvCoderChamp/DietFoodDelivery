@@ -28,3 +28,6 @@ backend/target/
 backend/bin/
 .gradle/
 build/
+
+# Local isolated feature workspaces
+.worktrees/
