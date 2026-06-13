@@ -607,3 +607,116 @@
     padding: 20px;
   }
 }
+
+.planner-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.reset-plan-btn {
+  font-size: 11px;
+  color: #e74c3c;
+}
+
+.subscription-location-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.subscription-location-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.subscription-location-grid label span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #47623d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.subscription-location-grid select,
+.subscription-location-grid textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #d4e8c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #1a2e12;
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 10px;
+  resize: vertical;
+}
+
+.subscription-location-grid select:focus,
+.subscription-location-grid textarea:focus {
+  outline: none;
+  border-color: #2d6a1f;
+  box-shadow: 0 0 0 3px rgba(45, 106, 31, 0.1);
+}
+
+.subscription-location-grid .address-field {
+  grid-column: 1 / -1;
+}
+
+.meal-category {
+  border: 1px solid #e0eacb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.meal-category-header {
+  width: 100%;
+  border: none;
+  background: linear-gradient(135deg, #f8fbf6, #edf6e8);
+  color: #1a2e12;
+  padding: 13px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font: inherit;
+}
+
+.meal-category-header:hover {
+  background: #e8f3e2;
+}
+
+.meal-category-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+}
+
+.meal-category-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: #2d6a1f;
+  background: #d4e8c8;
+  padding: 4px 8px;
+  border-radius: 99px;
+}
+
+.meal-category-items {
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .subscription-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-location-grid .address-field {
+    grid-column: auto;
+  }
+}

@@ -6,9 +6,9 @@ import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, S
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import logoImg from '../assets/logo.png';
 import * as XLSX from 'xlsx';
+import { formatMealsForReport } from '../utils/subscriptions';
 import './Admin.css';
 
 const STATUS_COLORS = {
@@ -25,6 +25,9 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [items, setItems] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [homepageImage, setHomepageImage] = useState('');
+  const [homepageImageSaving, setHomepageImageSaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
@@ -76,7 +79,7 @@ export default function Admin() {
   useEffect(() => {
     if (isAdmin) {
       setLoading(true);
-      Promise.all([fetchItems(), fetchOrders()]).finally(() => setLoading(false));
+      Promise.all([fetchItems(), fetchOrders(), fetchSubscriptions(), fetchHomepageImage()]).finally(() => setLoading(false));
     }
   }, [isAdmin]);
 
@@ -105,6 +108,31 @@ export default function Admin() {
         setOrders([]);
       }
     } catch (err) { console.error('Error fetching orders', err); }
+  };
+
+  const fetchSubscriptions = async () => {
+    try {
+      const response = await authFetch('/api/admin/subscriptions/all');
+      const data = await response.json();
+      setSubscriptions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching subscriptions', error);
+      setSubscriptions([]);
+    }
+  };
+
+  const fetchHomepageImage = async () => {
+    try {
+      const response = await fetch('/api/settings/homepage_image');
+      if (!response.ok) {
+        setHomepageImage('');
+        return;
+      }
+      const data = await response.json();
+      setHomepageImage(data.value || '');
+    } catch {
+      setHomepageImage('');
+    }
   };
 
   if (!isAdmin) {
@@ -245,6 +273,67 @@ export default function Admin() {
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleHomepageImageUpload = event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Please upload an image smaller than 10 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = loadEvent => {
+      const image = new Image();
+      image.onload = async () => {
+        const maxWidth = 1600;
+        const scale = Math.min(1, maxWidth / image.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        const value = canvas.toDataURL('image/jpeg', 0.8);
+
+        setHomepageImageSaving(true);
+        try {
+          const response = await authFetch('/api/admin/settings/homepage_image', {
+            method: 'POST',
+            body: JSON.stringify({ value }),
+          });
+          if (!response.ok) throw new Error('Image save failed');
+          setHomepageImage(value);
+          alert('Homepage image updated.');
+        } catch (error) {
+          console.error(error);
+          alert('Could not update the homepage image.');
+        } finally {
+          setHomepageImageSaving(false);
+          event.target.value = '';
+        }
+      };
+      image.src = loadEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleHomepageImageDelete = async () => {
+    if (!window.confirm('Delete the custom homepage image and restore the default?')) return;
+    setHomepageImageSaving(true);
+    try {
+      const response = await authFetch('/api/admin/settings/homepage_image', { method: 'DELETE' });
+      if (!response.ok) throw new Error('Image delete failed');
+      setHomepageImage('');
+    } catch (error) {
+      console.error(error);
+      alert('Could not delete the homepage image.');
+    } finally {
+      setHomepageImageSaving(false);
     }
   };
 
@@ -590,6 +679,30 @@ export default function Admin() {
                   📥 Export to Excel
                 </button>
               </div>
+              <section className="admin-report-card homepage-image-manager">
+                <div>
+                  <div className="admin-section-title">Manage Homepage Image</div>
+                  <p>Upload a fresh hero image or delete it to restore the default.</p>
+                  <div className="homepage-image-actions">
+                    <label className={`btn-primary ${homepageImageSaving ? 'btn-loading' : ''}`}>
+                      {homepageImageSaving ? 'Saving...' : homepageImage ? 'Replace Image' : 'Upload Image'}
+                      <input type="file" accept="image/*" onChange={handleHomepageImageUpload} disabled={homepageImageSaving} hidden />
+                    </label>
+                    {homepageImage && (
+                      <button className="btn-outline danger-outline" onClick={handleHomepageImageDelete} disabled={homepageImageSaving}>
+                        Delete Image
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="homepage-image-preview">
+                  <img
+                    src={homepageImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80'}
+                    alt="Current homepage hero"
+                  />
+                  {!homepageImage && <span>Default image</span>}
+                </div>
+              </section>
               <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '12px', padding: '15px' }}>
                 <table className="orders-table" style={{ fontSize: '13px' }}>
                   <thead>
@@ -618,6 +731,73 @@ export default function Admin() {
                   </tbody>
                 </table>
               </div>
+
+              <section className="admin-report-card subscription-report">
+                <div className="admin-top-bar">
+                  <div>
+                    <div className="admin-section-title">Subscription Reports</div>
+                    <p>{subscriptions.length} saved subscription{subscriptions.length === 1 ? '' : 's'}</p>
+                  </div>
+                  <button className="btn-primary" onClick={() => {
+                    if (!subscriptions.length) {
+                      alert('No subscriptions to export.');
+                      return;
+                    }
+                    const exportData = subscriptions.map(subscription => ({
+                      'Customer Name': subscription.customerName || 'Unknown',
+                      'Phone': subscription.phone || '',
+                      'Plan': `${subscription.planType || ''} Days`,
+                      'Status': subscription.status || '',
+                      'Delivery Slot': subscription.deliverySlot || '',
+                      'Selected Items': formatMealsForReport(subscription.mealsJson),
+                      'Delivery Area': subscription.deliveryArea || '',
+                      'Exact Address': subscription.address || '',
+                      'Start Date': subscription.startDate ? new Date(subscription.startDate).toLocaleDateString('en-IN') : '',
+                      'Remaining Days': subscription.remainingDays,
+                    }));
+                    const worksheet = XLSX.utils.json_to_sheet(exportData);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Subscriptions');
+                    XLSX.writeFile(workbook, 'MyMorning_Subscriptions_Report.xlsx');
+                  }}>
+                    Export Subscriptions to Excel
+                  </button>
+                </div>
+                <div className="report-table-scroll">
+                  <table className="orders-table subscription-table">
+                    <thead>
+                      <tr>
+                        <th>Customer</th>
+                        <th>Plan</th>
+                        <th>Delivery</th>
+                        <th>Selected Items</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscriptions.map(subscription => (
+                        <tr key={subscription.id} className="order-row">
+                          <td data-label="Customer">
+                            <strong>{subscription.customerName || 'Unknown'}</strong><br />
+                            <small>{subscription.phone || 'No phone'}</small>
+                          </td>
+                          <td data-label="Plan">{subscription.planType} Days</td>
+                          <td data-label="Delivery">
+                            {subscription.deliveryArea || '-'}<br />
+                            <small>{subscription.address || ''}</small><br />
+                            <small>{subscription.deliverySlot || ''}</small>
+                          </td>
+                          <td data-label="Selected Items">{formatMealsForReport(subscription.mealsJson) || '-'}</td>
+                          <td data-label="Status">{subscription.status || '-'}</td>
+                        </tr>
+                      ))}
+                      {!subscriptions.length && (
+                        <tr><td colSpan="5" className="empty-report">No saved subscriptions yet.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
             </div>
           )}
 
@@ -686,7 +866,13 @@ export default function Admin() {
                 <div className="form-group">
                   <label className="form-label">Category</label>
                   <select className="form-input" value={newItem.category} onChange={e => setNewItem(p => ({ ...p, category: e.target.value }))}>
-                    {['Protein Bowl', 'Smoothie', 'Breakfast', 'combos', 'Eggitarian', 'keto'].map(c => <option key={c} value={c}>{c}</option>)}
+                    {[
+                      ['bowls', 'Bowls'],
+                      ['smoothies', 'Smoothies'],
+                      ['combos', 'Combos'],
+                      ['breakfast', 'Breakfast'],
+                      ['eggitarian', 'Eggitarian'],
+                    ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                 </div>
                 <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

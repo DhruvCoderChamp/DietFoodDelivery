@@ -444,8 +444,19 @@
 }
 
 @media (max-width: 600px) {
+  .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .featured-img { height: 120px; }
+  .featured-body { padding: 10px; }
+  .featured-name { font-size: 13px; line-height: 1.25; }
+  .featured-meta { flex-direction: column; gap: 2px; font-size: 10px; margin-bottom: 8px; }
+  .featured-price { font-size: 16px; }
+  .featured-footer .btn-primary { padding: 7px 9px !important; font-size: 11px !important; }
+  .featured-badge { top: 6px; left: 6px; font-size: 9px; padding: 3px 6px; }
   .cookie-inner { flex-direction: column; text-align: center; }
   .cookie-actions { width: 100%; justify-content: center; flex-direction: column; gap: 12px; }
   .cookie-actions .btn-text { margin-right: 0 !important; }
   .cookie-actions .btn-primary { width: 100%; }
+}
+@media (max-width: 350px) {
+  .featured-grid { grid-template-columns: 1fr; }
 }

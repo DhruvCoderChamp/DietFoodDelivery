@@ -1,10 +1,8 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, MapPin, Clock, Zap, Leaf, Shield, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { testimonials, deliveryAreas } from '../data/menuData';
 import logoImg from '../assets/logo.png';
@@ -12,8 +10,6 @@ import './Home.css';
 
 const FeaturedCard = ({ item }) => {
   const { addItem } = useCart();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   
   const handleAdd = () => {
     addItem(item);
@@ -57,6 +53,16 @@ export default function Home() {
   const { products, loading: productsLoading } = useProducts();
   const featured = products.filter(i => i.isAvailable).slice(0, 6);
   const [showCookie, setShowCookie] = useState(() => !localStorage.getItem('mm_cookie_accepted'));
+  const [heroImage, setHeroImage] = useState('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80');
+
+  useEffect(() => {
+    fetch('/api/settings/homepage_image')
+      .then(response => response.ok ? response.json() : null)
+      .then(setting => {
+        if (setting?.value?.startsWith('data:image/')) setHeroImage(setting.value);
+      })
+      .catch(() => {});
+  }, []);
 
   const acceptCookie = () => {
     localStorage.setItem('mm_cookie_accepted', 'true');
@@ -114,7 +120,7 @@ export default function Home() {
           <div className="hero-visual">
             <div className="hero-img-wrap">
               <img
-                src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80"
+                src={heroImage}
                 alt="Healthy breakfast bowl"
                 className="hero-img"
               />

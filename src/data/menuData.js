@@ -186,12 +186,11 @@ export const menuItems = [
 
 export const categories = [
   { id: "all", label: "All Items" },
-  { id: "Protein Bowl", label: "Bowls" },
-  { id: "Smoothie", label: "Smoothies" },
+  { id: "bowls", label: "Bowls" },
+  { id: "smoothies", label: "Smoothies" },
   { id: "combos", label: "Combos" },
-  { id: "Breakfast", label: "Breakfast" },
-  { id: "Eggitarian", label: "Eggitarian" },
-  { id: "keto", label: "Keto" },
+  { id: "breakfast", label: "Breakfast" },
+  { id: "eggitarian", label: "Eggitarian" },
 ];
 
 export const deliveryAreas = [

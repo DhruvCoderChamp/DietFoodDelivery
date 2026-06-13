@@ -1,11 +1,10 @@
 
 import { useState, useMemo } from 'react';
 import { Search, Filter, ShoppingCart, Star, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { categories } from '../data/menuData';
+import { normalizeCategory } from '../utils/categories';
 import logoImg from '../assets/logo.png';
 import './Menu.css';
 
@@ -13,8 +12,6 @@ const TAGS = ['All', 'High Protein', 'Low Carb', 'Veg', 'Non-Veg'];
 
 export default function Menu() {
   const { addItem, items } = useCart();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const { products, loading: productsLoading, hasMore, loadMore } = useProducts();
   const dbItems = products.filter(i => i.isAvailable);
   const [search, setSearch] = useState('');
@@ -29,7 +26,7 @@ export default function Menu() {
 
   const filtered = useMemo(() => {
     let list = dbItems;
-    if (activeCategory !== 'all') list = list.filter(i => i.category === activeCategory);
+    if (activeCategory !== 'all') list = list.filter(i => normalizeCategory(i.category) === activeCategory);
     if (activeTags.length) {
       list = list.filter(i => activeTags.every(t => {
         if (t === 'High Protein') return i.tags.includes('high-protein') || i.protein > 20;

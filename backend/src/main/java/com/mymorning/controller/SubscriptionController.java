@@ -25,6 +25,8 @@ public class SubscriptionController {
             toUpdate.setPlanType(sub.getPlanType());
             toUpdate.setStatus(sub.getStatus());
             toUpdate.setDeliverySlot(sub.getDeliverySlot());
+            toUpdate.setDeliveryArea(sub.getDeliveryArea());
+            toUpdate.setAddress(sub.getAddress());
             toUpdate.setMealsJson(sub.getMealsJson());
             toUpdate.setRemainingDays(sub.getRemainingDays());
             repository.save(toUpdate);

@@ -1,14 +1,11 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/logo.png';
 import './Legal.css';
 
 export default function Contact() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
 
@@ -51,9 +48,11 @@ export default function Contact() {
             <div>
               <h3>Phone Numbers</h3>
               <p>
-                <a href="tel:+919187532042" style={{color: 'inherit', textDecoration: 'none'}}>Vivek (Founder): +91 91875 32042</a>
+                <a href="tel:+919187532042" style={{color: 'inherit', textDecoration: 'none'}}>Vivek: +91 91875 32042</a>
                 <br />
-                <a href="tel:+919187542042" style={{color: 'inherit', textDecoration: 'none', marginTop: '4px', display: 'inline-block'}}>Thejesh (Co-founder): +91 91875 42042</a>
+                <a href="tel:+919187542042" style={{color: 'inherit', textDecoration: 'none', marginTop: '4px', display: 'inline-block'}}>Thejesh: +91 91875 42042</a>
+                <br />
+                <a href="tel:+919177782042" style={{color: 'inherit', textDecoration: 'none', marginTop: '4px', display: 'inline-block'}}>Bindu: +91 91777 82042</a>
               </p>
             </div>
           </div>

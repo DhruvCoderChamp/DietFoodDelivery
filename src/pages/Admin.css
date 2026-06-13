@@ -517,3 +517,102 @@
   transform: scale(1.02);
   cursor: grabbing;
 }
+
+.admin-report-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.admin-report-card p {
+  color: #6b7280;
+  font-size: 13px;
+  margin: -10px 0 16px;
+}
+
+.homepage-image-manager {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.4fr);
+  gap: 24px;
+  align-items: center;
+}
+
+.homepage-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.homepage-image-actions label {
+  cursor: pointer;
+}
+
+.danger-outline {
+  color: #c0392b;
+  border-color: #efb0aa;
+}
+
+.homepage-image-preview {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #eef4eb;
+  min-height: 180px;
+}
+
+.homepage-image-preview img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.homepage-image-preview span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background: rgba(17, 24, 39, 0.78);
+  color: #fff;
+  border-radius: 99px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.subscription-report {
+  margin-top: 24px;
+}
+
+.report-table-scroll {
+  overflow-x: auto;
+}
+
+.subscription-table td {
+  vertical-align: top;
+  min-width: 120px;
+}
+
+.subscription-table td:nth-child(4) {
+  min-width: 260px;
+  max-width: 420px;
+  white-space: normal;
+}
+
+.empty-report {
+  text-align: center;
+  color: #9ca3af;
+  padding: 30px !important;
+}
+
+@media (max-width: 768px) {
+  .homepage-image-manager {
+    grid-template-columns: 1fr;
+  }
+
+  .homepage-image-preview img {
+    height: 180px;
+  }
+}
