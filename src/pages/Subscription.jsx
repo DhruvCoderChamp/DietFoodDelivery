@@ -53,11 +53,38 @@ export default function Subscription() {
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          const data = await response.json();
-          setDbProducts(data);
+        let allFetched = [];
+        let currentPage = 0;
+        let hasMorePages = true;
+        
+        while (hasMorePages) {
+          const response = await fetch(`/api/products?page=${currentPage}&size=50`);
+          if (response.ok) {
+            const data = await response.json();
+            const items = data.content || (Array.isArray(data) ? data : []);
+            allFetched = [...allFetched, ...items];
+            
+            // If the response is a plain JSON array or we reached the last page
+            if (Array.isArray(data) || data.last || items.length === 0) {
+              hasMorePages = false;
+            } else {
+              currentPage++;
+            }
+          } else {
+            // Fallback: try fetching full list directly in case pagination parameter is not accepted
+            const fallbackResponse = await fetch('/api/products');
+            if (fallbackResponse.ok) {
+              const data = await fallbackResponse.json();
+              if (Array.isArray(data)) {
+                allFetched = data;
+              } else if (data.content) {
+                allFetched = data.content;
+              }
+            }
+            hasMorePages = false;
+          }
         }
+        setDbProducts(allFetched);
       } catch (error) {
         console.error('Failed to fetch subscription products:', error);
       }
