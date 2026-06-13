@@ -43,35 +43,69 @@ export default function Checkout() {
     }
   }, []);
 
-  // Generate time slots minimum 3 hours from current time
+  // Generate time slots from 8:00 AM to 11:00 AM with 30-minute intervals
   const generateTimeSlots = () => {
     const slots = [];
     const now = new Date();
-    const currentHour = now.getHours();
     
-    // Minimum 3 hours buffer
-    let startHour = currentHour + 3;
-    
-    // If it's already too late today, show tomorrow's slots
-    if (startHour >= 22) {
-      slots.push('Tomorrow 8:00 AM');
-      slots.push('Tomorrow 9:00 AM');
-      slots.push('Tomorrow 10:00 AM');
-      return slots;
+    const formatSlot = (h, m) => {
+      const displayHour1 = h > 12 ? h - 12 : h;
+      const ampm1 = h >= 12 ? 'PM' : 'AM';
+      
+      let nextH = h;
+      let nextM = m + 30;
+      if (nextM >= 60) {
+        nextH += 1;
+        nextM = 0;
+      }
+      const displayHour2 = nextH > 12 ? nextH - 12 : nextH;
+      const ampm2 = nextH >= 12 ? 'PM' : 'AM';
+      
+      return `${displayHour1}:${m === 0 ? '00' : '30'} ${ampm1} - ${displayHour2}:${nextM === 0 ? '00' : '30'} ${ampm2}`;
+    };
+
+    const getMorningSlots = (prefix, startH = 8, startM = 0) => {
+      const daySlots = [];
+      let h = startH;
+      let m = startM;
+      
+      while (h < 11) {
+        daySlots.push(`${prefix} ${formatSlot(h, m)}`);
+        m += 30;
+        if (m >= 60) {
+          h += 1;
+          m = 0;
+        }
+      }
+      return daySlots;
+    };
+
+    // Calculate buffer time (now + 3 hours) to check today's availability
+    const bufferTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const isTodayAvailable = bufferTime.getDate() === now.getDate() && bufferTime.getHours() < 11;
+
+    if (isTodayAvailable) {
+      const bufferHour = bufferTime.getHours();
+      const bufferMinutes = bufferTime.getMinutes();
+      let startH = 8;
+      let startM = 0;
+      
+      if (bufferHour > 8 || (bufferHour === 8 && bufferMinutes > 0)) {
+        startH = bufferHour;
+        startM = bufferMinutes > 30 ? 0 : 30;
+        if (bufferMinutes > 30) {
+          startH += 1;
+        }
+      }
+      
+      if (startH < 11) {
+        slots.push(...getMorningSlots('Today', startH, startM));
+      }
     }
-    
-    if (startHour < 6) startHour = 6;
-    
-    for (let hour = startHour; hour <= 21; hour++) {
-      const displayHour = hour === 12 ? 12 : hour % 12;
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      slots.push(`${displayHour}:00 ${ampm}`);
-      slots.push(`${displayHour}:30 ${ampm}`);
-    }
-    
-    if (slots.length > 0 && slots[slots.length-1] !== '10:00 PM') {
-        slots.push('10:00 PM');
-    }
+
+    // Always include tomorrow's morning slots
+    slots.push(...getMorningSlots('Tomorrow', 8, 0));
+
     return slots;
   };
 
