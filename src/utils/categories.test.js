@@ -43,3 +43,20 @@ test('counts selected items for a category including quantities', () => {
 
   assert.equal(selectedCountForCategory('bowls', products, mealPlan), 3);
 });
+
+test('groups egg-related items under eggitarian category regardless of main category', () => {
+  const products = [
+    { name: 'Oatmeal & Eggs', category: 'combos', tags: ['high-protein'] },
+    { name: 'Plain Toast', category: 'breakfast', tags: ['veg'] },
+    { name: 'Egg White Omelette', category: 'breakfast', tags: ['eggitarian'] },
+  ];
+  
+  const groups = groupProductsByCategory(products);
+  const eggitarianGroup = groups.find(g => g.id === 'eggitarian');
+  
+  assert.ok(eggitarianGroup);
+  assert.deepEqual(
+    eggitarianGroup.items.map(i => i.name),
+    ['Oatmeal & Eggs', 'Egg White Omelette']
+  );
+});

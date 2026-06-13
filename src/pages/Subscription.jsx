@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search, Send, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
-import { deliveryAreas } from '../data/menuData';
+import { deliveryAreas, menuItems } from '../data/menuData';
 import { groupProductsByCategory, selectedCountForCategory } from '../utils/categories';
 import { buildSubscriptionPayload } from '../utils/subscriptions';
 import './Subscription.css';
@@ -14,12 +14,20 @@ const PLANS = [
   { id: 21, label: '21 Days' },
   { id: 30, label: '1 Month' },
 ];
-const DELIVERY_SLOTS = [
-  '6:00 AM - 7:00 AM',
-  '7:00 AM - 8:00 AM',
-  '8:00 AM - 9:00 AM',
-  '9:00 AM - 10:00 AM',
-];
+const generateSlots = () => {
+  const slots = [];
+  for (let hour = 6; hour < 23; hour++) {
+    const formatTime = (h, m) => {
+      const displayHour = h > 12 ? h - 12 : h;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      return `${displayHour}:${m === 0 ? '00' : '30'} ${ampm}`;
+    };
+    slots.push(`${formatTime(hour, 0)} - ${formatTime(hour, 30)}`);
+    slots.push(`${formatTime(hour, 30)} - ${formatTime(hour + 1, 0)}`);
+  }
+  return slots;
+};
+const DELIVERY_SLOTS = generateSlots();
 
 const loadDraft = () => {
   try {
@@ -43,6 +51,13 @@ export default function Subscription() {
   const { products } = useProducts();
   const initial = loadDraft();
 
+  const allProducts = [...products];
+  menuItems.forEach(item => {
+    if (!allProducts.some(p => p.name.toLowerCase() === item.name.toLowerCase())) {
+      allProducts.push(item);
+    }
+  });
+
   const [selectedPlan, setSelectedPlan] = useState(initial?.plan || 7);
   const [mode, setMode] = useState(initial?.mode || 'weekly');
   const [showPlanner, setShowPlanner] = useState(false);
@@ -56,7 +71,7 @@ export default function Subscription() {
   const [isSaving, setIsSaving] = useState(false);
 
   const days = mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
-  const groupedProducts = groupProductsByCategory(products, searchTerm);
+  const groupedProducts = groupProductsByCategory(allProducts, searchTerm);
   const hasPlan = Object.values(mealPlan).some(meals => meals?.length);
 
   useEffect(() => {
@@ -264,7 +279,7 @@ ${routineText}`;
               <div className="planner-list">
                 {groupedProducts.length ? groupedProducts.map(group => {
                   const expanded = expandedCategories[group.id];
-                  const selectedCount = selectedCountForCategory(group.id, products, mealPlan);
+                  const selectedCount = selectedCountForCategory(group.id, allProducts, mealPlan);
                   return (
                     <section className="meal-category" key={group.id}>
                       <button className="meal-category-header" onClick={() => setExpandedCategories(current => ({ ...current, [group.id]: !current[group.id] }))}>
