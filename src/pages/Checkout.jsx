@@ -43,7 +43,7 @@ export default function Checkout() {
     }
   }, []);
 
-  // Generate time slots from 8:00 AM to 11:00 AM with 30-minute intervals
+  // Generate time slots from 8:00 AM to 11:00 PM with 30-minute intervals
   const generateTimeSlots = () => {
     const slots = [];
     const now = new Date();
@@ -64,12 +64,12 @@ export default function Checkout() {
       return `${displayHour1}:${m === 0 ? '00' : '30'} ${ampm1} - ${displayHour2}:${nextM === 0 ? '00' : '30'} ${ampm2}`;
     };
 
-    const getMorningSlots = (prefix, startH = 8, startM = 0) => {
+    const getDaySlots = (prefix, startH = 8, startM = 0) => {
       const daySlots = [];
       let h = startH;
       let m = startM;
       
-      while (h < 11) {
+      while (h < 23) {
         daySlots.push(`${prefix} ${formatSlot(h, m)}`);
         m += 30;
         if (m >= 60) {
@@ -82,7 +82,7 @@ export default function Checkout() {
 
     // Calculate buffer time (now + 3 hours) to check today's availability
     const bufferTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-    const isTodayAvailable = bufferTime.getDate() === now.getDate() && bufferTime.getHours() < 11;
+    const isTodayAvailable = bufferTime.getDate() === now.getDate() && bufferTime.getHours() < 23;
 
     if (isTodayAvailable) {
       const bufferHour = bufferTime.getHours();
@@ -98,13 +98,13 @@ export default function Checkout() {
         }
       }
       
-      if (startH < 11) {
-        slots.push(...getMorningSlots('Today', startH, startM));
+      if (startH < 23) {
+        slots.push(...getDaySlots('Today', startH, startM));
       }
     }
 
-    // Always include tomorrow's morning slots
-    slots.push(...getMorningSlots('Tomorrow', 8, 0));
+    // Always include tomorrow's morning-to-night slots
+    slots.push(...getDaySlots('Tomorrow', 8, 0));
 
     return slots;
   };
