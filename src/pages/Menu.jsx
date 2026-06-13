@@ -14,6 +14,29 @@ export default function Menu() {
   const { addItem, items } = useCart();
   const { products, loading: productsLoading, hasMore, loadMore } = useProducts();
   const dbItems = products.filter(i => i.isAvailable);
+
+  const dynamicCategories = useMemo(() => {
+    const list = [
+      { id: "all", label: "All Items" },
+      { id: "bowls", label: "Bowls" },
+      { id: "smoothies", label: "Smoothies" },
+      { id: "combos", label: "Combos" },
+      { id: "breakfast", label: "Breakfast" },
+      { id: "eggitarian", label: "Eggitarian" },
+    ];
+    
+    products.forEach(p => {
+      if (!p.category) return;
+      const norm = normalizeCategory(p.category);
+      if (!list.some(c => c.id === norm)) {
+        const label = p.category.trim().charAt(0).toUpperCase() + p.category.trim().slice(1);
+        list.push({ id: norm, label });
+      }
+    });
+    
+    return list;
+  }, [products]);
+
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeTags, setActiveTags] = useState([]);
@@ -92,7 +115,7 @@ export default function Menu() {
 
         {/* Category tabs */}
         <div className="category-tabs">
-          {categories.map(cat => (
+          {dynamicCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}

@@ -63,7 +63,28 @@ export const isProductInCategory = (product, categoryId) => {
 
 export const groupProductsByCategory = (products, searchTerm = '') => {
   const search = searchTerm.trim().toLowerCase();
-  return CATEGORY_DEFINITIONS.map(category => ({
+  
+  // Start with default definitions
+  const categories = [
+    { id: 'bowls', label: 'Bowls' },
+    { id: 'smoothies', label: 'Smoothies' },
+    { id: 'combos', label: 'Combos' },
+    { id: 'breakfast', label: 'Breakfast' },
+    { id: 'eggitarian', label: 'Eggitarian' },
+  ];
+
+  // Collect other categories dynamically from products
+  products.forEach(product => {
+    if (!product.category) return;
+    const norm = normalizeCategory(product.category);
+    // If the category is not already in our definitions list, add it dynamically!
+    if (!categories.some(cat => cat.id === norm)) {
+      const label = product.category.trim().charAt(0).toUpperCase() + product.category.trim().slice(1);
+      categories.push({ id: norm, label });
+    }
+  });
+
+  return categories.map(category => ({
     ...category,
     items: products.filter(product => {
       const isAvailable = product.isAvailable !== false;
