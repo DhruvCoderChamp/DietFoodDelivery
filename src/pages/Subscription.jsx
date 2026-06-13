@@ -87,6 +87,8 @@ export default function Subscription() {
 
   const days = mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
   const groupedProducts = groupProductsByCategory(allProducts, searchTerm);
+  console.log('ALL PRODUCTS:', allProducts);
+  console.log('GROUPED PRODUCTS:', groupedProducts);
   const hasPlan = Object.values(mealPlan).some(meals => meals?.length);
 
   useEffect(() => {
@@ -291,7 +293,7 @@ ${routineText}`;
                           {group.items.map(item => {
                             const quantity = mealPlan[activeDay]?.filter(meal => meal === item.name).length || 0;
                             return (
-                              <div key={item.id || item.name} className="planner-item">
+                              <div key={item.name} className="planner-item">
                                 <span>{item.name}</span>
                                 {quantity === 0 ? (
                                   <button className="add-btn" onClick={() => updateMeal(item.name, 'add')}><Plus size={14} /> Add</button>

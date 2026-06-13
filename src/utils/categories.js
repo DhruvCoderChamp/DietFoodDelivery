@@ -20,6 +20,23 @@ const CATEGORY_ALIASES = {
 
 export const normalizeCategory = value => {
   const normalized = String(value || '').trim().toLowerCase();
+  
+  if (normalized.includes('bowl')) return 'bowls';
+  if (normalized.includes('smoothie') || normalized.includes('shake')) return 'smoothies';
+  if (normalized.includes('combo') || normalized.includes('mix') || normalized.includes('platter')) return 'combos';
+  if (normalized.includes('egg')) return 'eggitarian';
+  if (
+    normalized.includes('breakfast') || 
+    normalized.includes('juice') || 
+    normalized.includes('drink') || 
+    normalized.includes('beverage') || 
+    normalized.includes('morning') || 
+    normalized.includes('tea') || 
+    normalized.includes('coffee')
+  ) {
+    return 'breakfast';
+  }
+
   return CATEGORY_ALIASES[normalized] || normalized;
 };
 
