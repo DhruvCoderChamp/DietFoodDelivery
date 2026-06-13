@@ -60,3 +60,19 @@ test('groups egg-related items under eggitarian category regardless of main cate
     ['Oatmeal & Eggs', 'Egg White Omelette']
   );
 });
+
+test('groups products based on tags for bowls and smoothies', () => {
+  const products = [
+    { name: 'Oatmeal Bowl', category: 'breakfast', tags: ['bowl'] },
+    { name: 'Green Mix', category: 'breakfast', tags: ['smoothie'] },
+  ];
+
+  const groups = groupProductsByCategory(products);
+  const bowlsGroup = groups.find(g => g.id === 'bowls');
+  const smoothiesGroup = groups.find(g => g.id === 'smoothies');
+
+  assert.ok(bowlsGroup);
+  assert.ok(smoothiesGroup);
+  assert.deepEqual(bowlsGroup.items.map(i => i.name), ['Oatmeal Bowl']);
+  assert.deepEqual(smoothiesGroup.items.map(i => i.name), ['Green Mix']);
+});
