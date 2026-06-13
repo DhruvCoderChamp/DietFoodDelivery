@@ -25,8 +25,8 @@ export default function Cart() {
     );
   }
 
-  const deliveryFee = totalPrice >= 0 ? 0 : 30;
-  const finalTotal = totalPrice + deliveryFee;
+  const deliveryFee = 0;
+  const finalTotal = totalPrice;
 
   return (
     <div className="cart-page page-enter">
@@ -41,16 +41,6 @@ export default function Cart() {
         <div className="cart-layout">
           {/* Items */}
           <div className="cart-items">
-            {totalPrice < 199 && (
-              <div className="free-delivery-banner">
-                <Tag size={14} />
-                Your order is eligible for <strong>FREE delivery!</strong>
-                <div className="free-delivery-bar">
-                  <div className="free-delivery-fill" style={{ width: `${Math.min((totalPrice / 199) * 100, 100)}%` }}></div>
-                </div>
-              </div>
-            )}
-
             {items.map(item => (
               <div className="cart-item" key={item.id}>
                 <img 

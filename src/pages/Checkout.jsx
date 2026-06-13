@@ -10,8 +10,8 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { user, authFetch } = useAuth();
   const navigate = useNavigate();
-  const deliveryFee = totalPrice >= 199 ? 0 : 30;
-  const total = totalPrice + deliveryFee;
+  const deliveryFee = 0;
+  const total = totalPrice;
 
   const [form, setForm] = useState({ 
     name: user?.name || '', 

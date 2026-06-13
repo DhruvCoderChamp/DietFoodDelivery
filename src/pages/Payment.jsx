@@ -14,8 +14,8 @@ const PAYMENT_METHODS = [
 export default function Payment() {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
-  const deliveryFee = totalPrice >= 199 ? 0 : 30;
-  const total = totalPrice + deliveryFee;
+  const deliveryFee = 0;
+  const total = totalPrice;
 
   const [method, setMethod] = useState('upi');
   const [upiId, setUpiId] = useState('');

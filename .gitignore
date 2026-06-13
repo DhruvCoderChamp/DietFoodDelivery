@@ -31,3 +31,7 @@ build/
 
 # Local isolated feature workspaces
 .worktrees/
+
+# Maven binaries
+maven/
+maven.zip
