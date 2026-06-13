@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search, Send, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useProducts } from '../context/ProductsContext';
 import { deliveryAreas, menuItems } from '../data/menuData';
 import { groupProductsByCategory, selectedCountForCategory } from '../utils/categories';
 import { buildSubscriptionPayload } from '../utils/subscriptions';
@@ -48,10 +47,25 @@ const createDateDays = length => {
 
 export default function Subscription() {
   const { user, authFetch } = useAuth();
-  const { products } = useProducts();
+  const [dbProducts, setDbProducts] = useState([]);
   const initial = loadDraft();
 
-  const allProducts = [...products];
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setDbProducts(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription products:', error);
+      }
+    };
+    fetchAllProducts();
+  }, []);
+
+  const allProducts = [...dbProducts];
   menuItems.forEach(item => {
     if (!allProducts.some(p => p.name.toLowerCase() === item.name.toLowerCase())) {
       allProducts.push(item);
