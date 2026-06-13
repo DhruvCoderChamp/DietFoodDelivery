@@ -75,7 +75,11 @@ export default function Subscription() {
   const [selectedPlan, setSelectedPlan] = useState(initial?.plan || 7);
   const [mode, setMode] = useState(initial?.mode || 'weekly');
   const [showPlanner, setShowPlanner] = useState(false);
-  const [activeDay, setActiveDay] = useState('Monday');
+  const [activeDay, setActiveDay] = useState(() => {
+    const initialMode = initial?.mode || 'weekly';
+    const initialPlan = initial?.plan || 7;
+    return initialMode === 'weekly' ? WEEK_DAYS[0] : createDateDays(initialPlan)[0];
+  });
   const [mealPlan, setMealPlan] = useState(initial?.meals || {});
   const [searchTerm, setSearchTerm] = useState('');
   const [deliveryArea, setDeliveryArea] = useState(initial?.deliveryArea || '');
@@ -86,6 +90,13 @@ export default function Subscription() {
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
   const days = mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
+
+  useEffect(() => {
+    if (days.length && !days.includes(activeDay)) {
+      setActiveDay(days[0]);
+    }
+  }, [days, activeDay]);
+
   const groupedProducts = groupProductsByCategory(allProducts, searchTerm);
   console.log('ALL PRODUCTS:', allProducts);
   console.log('GROUPED PRODUCTS:', groupedProducts);
@@ -293,17 +304,36 @@ ${routineText}`;
                           {group.items.map(item => {
                             const quantity = mealPlan[activeDay]?.filter(meal => meal === item.name).length || 0;
                             return (
-                              <div key={item.name} className="planner-item">
-                                <span>{item.name}</span>
-                                {quantity === 0 ? (
-                                  <button className="add-btn" onClick={() => updateMeal(item.name, 'add')}><Plus size={14} /> Add</button>
-                                ) : (
-                                  <div className="qty-stepper">
-                                    <button onClick={() => updateMeal(item.name, 'remove')}>-</button>
-                                    <span>{quantity}</span>
-                                    <button onClick={() => updateMeal(item.name, 'add')}>+</button>
+                              <div key={item.name} className="planner-item subscription-item-card">
+                                <img 
+                                  src={item.image && (item.image.startsWith('http') || item.image.startsWith('data:')) ? item.image : (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100')} 
+                                  alt={item.name} 
+                                  className="subscription-item-img" 
+                                  loading="lazy"
+                                />
+                                <div className="item-details-left">
+                                  <div className="item-title-row">
+                                    <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
+                                    <span className="item-name-text">{item.name}</span>
                                   </div>
-                                )}
+                                  {item.description && <p className="item-desc-text">{item.description}</p>}
+                                  <div className="item-meta-row">
+                                    {item.calories ? <span className="item-macro">🔥 {item.calories} kcal</span> : null}
+                                    {item.protein ? <span className="item-macro">💪 {item.protein}g protein</span> : null}
+                                    <span className="item-price-text">₹{item.price}</span>
+                                  </div>
+                                </div>
+                                <div className="item-actions-right">
+                                  {quantity === 0 ? (
+                                    <button className="add-btn" onClick={() => updateMeal(item.name, 'add')}><Plus size={14} /> Add</button>
+                                  ) : (
+                                    <div className="qty-stepper">
+                                      <button onClick={() => updateMeal(item.name, 'remove')}>-</button>
+                                      <span>{quantity}</span>
+                                      <button onClick={() => updateMeal(item.name, 'add')}>+</button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}

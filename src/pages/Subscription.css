@@ -745,3 +745,79 @@
 .delivery-actions button {
   flex: 1;
 }
+
+/* Rich Product cards in Subscription Planner */
+.subscription-item-card {
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.subscription-item-img {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+  border: 1px solid #e2ebd4;
+}
+
+.item-details-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-name-text {
+  font-weight: 800;
+  color: #1a2e12;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-desc-text {
+  font-size: 11.5px;
+  color: #728469;
+  margin: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.item-macro {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #4b673d;
+  background: #f1f7ec;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.item-price-text {
+  font-weight: 850;
+  color: #2d6a1f;
+  font-size: 13.5px;
+}
+
+.item-actions-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
