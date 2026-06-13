@@ -69,6 +69,7 @@ export default function Subscription() {
   const [deliverySlot, setDeliverySlot] = useState(initial?.deliverySlot || DELIVERY_SLOTS[0]);
   const [expandedCategories, setExpandedCategories] = useState({ bowls: true });
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
   const days = mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
   const groupedProducts = groupProductsByCategory(allProducts, searchTerm);
@@ -162,8 +163,8 @@ ${routineText}`;
             </div>
             <div className="active-plan-actions">
               <button className="btn-outline" onClick={() => setShowPlanner(true)}>Edit Plan</button>
-              <button className="btn-primary" onClick={saveAndOpenWhatsApp} disabled={isSaving}>
-                <Send size={16} /> {isSaving ? 'Saving...' : 'Confirm & Send'}
+              <button className="btn-primary" onClick={() => setShowDeliveryForm(true)}>
+                <Send size={16} /> Confirm & Send
               </button>
             </div>
           </div>
@@ -248,25 +249,7 @@ ${routineText}`;
                 <button className={mode === 'date' ? 'active' : ''} onClick={() => changeMode('date')}>Date</button>
               </div>
 
-              <div className="subscription-location-grid">
-                <label>
-                  <span>Delivery Area</span>
-                  <select value={deliveryArea} onChange={event => setDeliveryArea(event.target.value)}>
-                    <option value="">Select verified area</option>
-                    {deliveryAreas.map(area => <option key={area} value={area}>{area}</option>)}
-                  </select>
-                </label>
-                <label>
-                  <span>Delivery Slot</span>
-                  <select value={deliverySlot} onChange={event => setDeliverySlot(event.target.value)}>
-                    {DELIVERY_SLOTS.map(slot => <option key={slot} value={slot}>{slot}</option>)}
-                  </select>
-                </label>
-                <label className="address-field">
-                  <span>Exact Address</span>
-                  <textarea rows="2" value={address} onChange={event => setAddress(event.target.value)} placeholder="House/flat number, street and landmark" />
-                </label>
-              </div>
+              {/* Location Grid removed from meal planning stage */}
 
               <div className="planner-search-container">
                 <div className="search-box">
@@ -315,9 +298,66 @@ ${routineText}`;
                 }) : <div className="no-results">No items found matching "{searchTerm}"</div>}
               </div>
 
-              <button className="planner-send" onClick={saveAndOpenWhatsApp} disabled={isSaving}>
-                {isSaving ? 'Saving Subscription...' : 'Save & Send Routine to WhatsApp'}
+              <button className="planner-send" onClick={() => {
+                const totalMeals = Object.values(mealPlan).flat().length;
+                if (totalMeals === 0) {
+                  alert('Please select at least one meal before proceeding.');
+                  return;
+                }
+                setShowPlanner(false);
+                setShowDeliveryForm(true);
+              }}>
+                Proceed to Delivery Details
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeliveryForm && (
+        <div className="planner-overlay">
+          <div className="planner-modal delivery-details-modal">
+            <div className="planner-content">
+              <div className="planner-header">
+                <h3>Delivery Details</h3>
+                <button className="close-btn" onClick={() => setShowDeliveryForm(false)}><X size={18} /></button>
+              </div>
+              
+              <div className="delivery-step-info">
+                <p>Please enter your delivery area, slot, and exact address to complete your subscription request.</p>
+              </div>
+              
+              <div className="subscription-location-grid focused">
+                <label>
+                  <span>Delivery Area *</span>
+                  <select value={deliveryArea} onChange={event => setDeliveryArea(event.target.value)}>
+                    <option value="">Select verified area</option>
+                    {deliveryAreas.map(area => <option key={area} value={area}>{area}</option>)}
+                  </select>
+                </label>
+                <label>
+                  <span>Delivery Slot *</span>
+                  <select value={deliverySlot} onChange={event => setDeliverySlot(event.target.value)}>
+                    {DELIVERY_SLOTS.map(slot => <option key={slot} value={slot}>{slot}</option>)}
+                  </select>
+                </label>
+                <label className="address-field">
+                  <span>Exact Address *</span>
+                  <textarea rows="3" value={address} onChange={event => setAddress(event.target.value)} placeholder="House/flat number, building, street, and landmark" />
+                </label>
+              </div>
+              
+              <div className="delivery-actions">
+                <button className="btn-outline" onClick={() => {
+                  setShowDeliveryForm(false);
+                  setShowPlanner(true);
+                }}>
+                  ← Back to Meals
+                </button>
+                <button className="planner-send" onClick={saveAndOpenWhatsApp} disabled={isSaving} style={{ margin: 0 }}>
+                  {isSaving ? 'Saving...' : 'Confirm & Send to WhatsApp'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -720,3 +720,28 @@
     grid-column: auto;
   }
 }
+
+/* Focused Delivery Details Modal */
+.delivery-details-modal {
+  max-width: 550px;
+  height: auto;
+  max-height: 90vh;
+}
+
+.delivery-step-info {
+  margin-top: 10px;
+  color: #6b8a5e;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.delivery-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.delivery-actions button {
+  flex: 1;
+}
