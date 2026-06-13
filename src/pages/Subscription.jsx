@@ -1,10 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Plus, Search, Send, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { deliveryAreas, menuItems } from '../data/menuData';
-import { groupProductsByCategory, selectedCountForCategory } from '../utils/categories';
+import { groupProductsByCategory, selectedCountForCategory, normalizeCategory, isProductInCategory } from '../utils/categories';
 import { buildSubscriptionPayload } from '../utils/subscriptions';
 import './Subscription.css';
+
+const sanitizeMealPlan = (rawPlan) => {
+  if (!rawPlan || typeof rawPlan !== 'object' || Array.isArray(rawPlan)) return {};
+  const clean = {};
+  Object.entries(rawPlan).forEach(([day, meals]) => {
+    if (Array.isArray(meals)) {
+      clean[day] = meals.filter(m => typeof m === 'string');
+    } else if (typeof meals === 'string' && meals.trim()) {
+      clean[day] = meals.split(',').map(m => m.trim()).filter(Boolean);
+    } else {
+      clean[day] = [];
+    }
+  });
+  return clean;
+};
 
 const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const PLANS = [
@@ -92,12 +107,25 @@ export default function Subscription() {
     fetchAllProducts();
   }, []);
 
-  const allProducts = [...dbProducts];
-  menuItems.forEach(item => {
-    if (!allProducts.some(p => p.name.toLowerCase() === item.name.toLowerCase())) {
-      allProducts.push(item);
-    }
-  });
+  const allProducts = useMemo(() => {
+    const list = [];
+    const seenNames = new Set();
+    dbProducts.forEach(p => {
+      const lowerName = p.name.toLowerCase().trim();
+      if (!seenNames.has(lowerName)) {
+        seenNames.add(lowerName);
+        list.push(p);
+      }
+    });
+    menuItems.forEach(item => {
+      const lowerName = item.name.toLowerCase().trim();
+      if (!seenNames.has(lowerName)) {
+        seenNames.add(lowerName);
+        list.push(item);
+      }
+    });
+    return list;
+  }, [dbProducts]);
 
   const [selectedPlan, setSelectedPlan] = useState(initial?.plan || 7);
   const [mode, setMode] = useState(initial?.mode || 'weekly');
@@ -107,16 +135,18 @@ export default function Subscription() {
     const initialPlan = initial?.plan || 7;
     return initialMode === 'weekly' ? WEEK_DAYS[0] : createDateDays(initialPlan)[0];
   });
-  const [mealPlan, setMealPlan] = useState(initial?.meals || {});
+  const [mealPlan, setMealPlan] = useState(() => sanitizeMealPlan(initial?.meals));
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [deliveryArea, setDeliveryArea] = useState(initial?.deliveryArea || '');
   const [address, setAddress] = useState(initial?.address || '');
   const [deliverySlot, setDeliverySlot] = useState(initial?.deliverySlot || DELIVERY_SLOTS[0]);
-  const [expandedCategories, setExpandedCategories] = useState({ bowls: true });
   const [isSaving, setIsSaving] = useState(false);
   const [showDeliveryForm, setShowDeliveryForm] = useState(false);
 
-  const days = mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
+  const days = useMemo(() => {
+    return mode === 'weekly' ? WEEK_DAYS : createDateDays(selectedPlan);
+  }, [mode, selectedPlan]);
 
   useEffect(() => {
     if (days.length && !days.includes(activeDay)) {
@@ -124,10 +154,47 @@ export default function Subscription() {
     }
   }, [days, activeDay]);
 
-  const groupedProducts = groupProductsByCategory(allProducts, searchTerm);
-  console.log('ALL PRODUCTS:', allProducts);
-  console.log('GROUPED PRODUCTS:', groupedProducts);
-  const hasPlan = Object.values(mealPlan).some(meals => meals?.length);
+  const subCategories = useMemo(() => {
+    const list = [
+      { id: 'all', label: 'All Items' },
+      { id: 'bowls', label: 'Bowls' },
+      { id: 'smoothies', label: 'Smoothies' },
+      { id: 'combos', label: 'Combos' },
+      { id: 'breakfast', label: 'Breakfast' },
+      { id: 'eggitarian', label: 'Eggitarian' },
+    ];
+    allProducts.forEach(p => {
+      if (!p.category) return;
+      const norm = normalizeCategory(p.category);
+      if (!list.some(c => c.id === norm)) {
+        const label = p.category.trim().charAt(0).toUpperCase() + p.category.trim().slice(1);
+        list.push({ id: norm, label });
+      }
+    });
+    return list;
+  }, [allProducts]);
+
+  const filteredProducts = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    return allProducts.filter(product => {
+      const isAvailable = product.isAvailable !== false;
+      const matchesSearch = !search || product.name.toLowerCase().includes(search) || 
+                            (product.description && product.description.toLowerCase().includes(search));
+      const matchesCategory = activeCategory === 'all' || isProductInCategory(product, activeCategory);
+      return isAvailable && matchesSearch && matchesCategory;
+    });
+  }, [allProducts, searchTerm, activeCategory]);
+
+  const hasPlan = useMemo(() => {
+    return days.some(day => Array.isArray(mealPlan[day]) && mealPlan[day].length > 0);
+  }, [days, mealPlan]);
+
+  const totalSelectedCount = useMemo(() => {
+    return days.reduce((sum, day) => {
+      const meals = mealPlan[day];
+      return sum + (Array.isArray(meals) ? meals.length : 0);
+    }, 0);
+  }, [days, mealPlan]);
 
   useEffect(() => {
     localStorage.setItem('mm_sub_data', JSON.stringify({
@@ -147,14 +214,17 @@ export default function Subscription() {
 
   const updateMeal = (meal, action) => {
     setMealPlan(current => {
-      const dayMeals = current[activeDay] || [];
-      if (action === 'add') return { ...current, [activeDay]: [...dayMeals, meal] };
+      const cleanCurrent = sanitizeMealPlan(current);
+      const dayMeals = cleanCurrent[activeDay] || [];
+      if (action === 'add') {
+        return { ...cleanCurrent, [activeDay]: [...dayMeals, meal] };
+      }
 
       const index = dayMeals.indexOf(meal);
-      if (index < 0) return current;
+      if (index < 0) return cleanCurrent;
       const updated = [...dayMeals];
       updated.splice(index, 1);
-      return { ...current, [activeDay]: updated };
+      return { ...cleanCurrent, [activeDay]: updated };
     });
   };
 
@@ -169,7 +239,10 @@ export default function Subscription() {
     }
 
     const routineText = days
-      .map(day => `${day}: ${mealPlan[day]?.length ? mealPlan[day].join(', ') : 'No selection'}`)
+      .map(day => {
+        const dayMeals = mealPlan[day];
+        return `${day}: ${Array.isArray(dayMeals) && dayMeals.length ? dayMeals.join(', ') : 'No selection'}`;
+      })
       .join('\n');
     const message = `New Subscription Request
 
@@ -216,8 +289,8 @@ ${routineText}`;
               <p className="active-plan-subtitle">Your meal routine for the next <strong>{selectedPlan} days</strong>.</p>
             </div>
             <div className="active-plan-actions">
-              <button className="btn-outline" onClick={() => setShowPlanner(true)}>Edit Plan</button>
-              <button className="btn-primary" onClick={() => setShowDeliveryForm(true)}>
+              <button type="button" className="btn-outline" onClick={() => setShowPlanner(true)}>Edit Plan</button>
+              <button type="button" className="btn-primary" onClick={() => setShowDeliveryForm(true)}>
                 <Send size={16} /> Confirm & Send
               </button>
             </div>
@@ -226,13 +299,13 @@ ${routineText}`;
           <div className="active-plan-stats">
             <div className="stat-card"><span className="stat-label">Plan Duration</span><span className="stat-value">{selectedPlan} Days</span></div>
             <div className="stat-card"><span className="stat-label">Planning Mode</span><span className="stat-value">{mode === 'weekly' ? 'Weekly' : 'Date-wise'}</span></div>
-            <div className="stat-card"><span className="stat-label">Total Items</span><span className="stat-value">{Object.values(mealPlan).flat().length} Selected</span></div>
+            <div className="stat-card"><span className="stat-label">Total Items</span><span className="stat-value">{totalSelectedCount} Selected</span></div>
             <div className="stat-card"><span className="stat-label">Delivery Area</span><span className="stat-value">{deliveryArea || 'Not set'}</span></div>
           </div>
 
           <div className="active-plan-grid">
             {days.map(day => {
-              const meals = mealPlan[day] || [];
+              const meals = Array.isArray(mealPlan[day]) ? mealPlan[day] : [];
               return (
                 <div key={day} className={`day-preview-card ${meals.length ? '' : 'empty'}`}>
                   <div className="day-preview-header">
@@ -250,7 +323,7 @@ ${routineText}`;
           </div>
 
           <div style={{ marginTop: 40, textAlign: 'center' }}>
-            <button className="btn-ghost" style={{ color: '#e74c3c' }} onClick={() => {
+            <button type="button" className="btn-ghost" style={{ color: '#e74c3c' }} onClick={() => {
               if (window.confirm('This will permanently delete your current routine. Continue?')) {
                 setMealPlan({});
                 localStorage.removeItem('mm_sub_data');
@@ -265,13 +338,13 @@ ${routineText}`;
             <p>Select your plan and start customizing.</p>
             <div className="plan-options">
               {PLANS.map(plan => (
-                <button key={plan.id} className={`plan-chip ${selectedPlan === plan.id ? 'active' : ''}`} onClick={() => setSelectedPlan(plan.id)}>
+                <button type="button" key={plan.id} className={`plan-chip ${selectedPlan === plan.id ? 'active' : ''}`} onClick={() => setSelectedPlan(plan.id)}>
                   {plan.label}
                 </button>
               ))}
             </div>
           </div>
-          <button className="planner-cta-btn" onClick={() => setShowPlanner(true)}><Send size={18} /> Start Planning</button>
+          <button type="button" className="planner-cta-btn" onClick={() => setShowPlanner(true)}><Send size={18} /> Start Planning</button>
         </div>
       )}
 
@@ -280,9 +353,9 @@ ${routineText}`;
           <div className="planner-modal">
             <div className="planner-days">
               {days.map(day => (
-                <button key={day} className={`day-tab ${activeDay === day ? 'active' : ''}`} onClick={() => setActiveDay(day)}>
+                <button type="button" key={day} className={`day-tab ${activeDay === day ? 'active' : ''}`} onClick={() => setActiveDay(day)}>
                   <span>{day}</span>
-                  {!!mealPlan[day]?.length && <span className="count-badge">{mealPlan[day].length}</span>}
+                  {Array.isArray(mealPlan[day]) && mealPlan[day].length > 0 && <span className="count-badge">{mealPlan[day].length}</span>}
                 </button>
               ))}
             </div>
@@ -291,16 +364,16 @@ ${routineText}`;
               <div className="planner-header">
                 <h3>{activeDay}</h3>
                 <div className="planner-header-actions">
-                  <button className="btn-ghost reset-plan-btn" onClick={() => {
+                  <button type="button" className="btn-ghost reset-plan-btn" onClick={() => {
                     if (window.confirm('Clear your entire selection and start over?')) setMealPlan({});
                   }}>Reset Plan</button>
-                  <button className="close-btn" onClick={() => setShowPlanner(false)}><X size={18} /></button>
+                  <button type="button" className="close-btn" onClick={() => setShowPlanner(false)}><X size={18} /></button>
                 </div>
               </div>
 
               <div className="mode-toggle">
-                <button className={mode === 'weekly' ? 'active' : ''} onClick={() => changeMode('weekly')}>Weekly</button>
-                <button className={mode === 'date' ? 'active' : ''} onClick={() => changeMode('date')}>Date</button>
+                <button type="button" className={mode === 'weekly' ? 'active' : ''} onClick={() => changeMode('weekly')}>Weekly</button>
+                <button type="button" className={mode === 'date' ? 'active' : ''} onClick={() => changeMode('date')}>Date</button>
               </div>
 
               {/* Location Grid removed from meal planning stage */}
@@ -309,71 +382,66 @@ ${routineText}`;
                 <div className="search-box">
                   <Search size={16} />
                   <input type="text" placeholder="Search from menu..." value={searchTerm} onChange={event => setSearchTerm(event.target.value)} />
-                  {searchTerm && <button className="clear-search" onClick={() => setSearchTerm('')}><X size={14} /></button>}
+                  {searchTerm && <button type="button" className="clear-search" onClick={() => setSearchTerm('')}><X size={14} /></button>}
                 </div>
               </div>
 
+              {/* Category tabs */}
+              <div className="category-tabs">
+                {subCategories.map(cat => (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`cat-tab ${activeCategory === cat.id ? 'cat-active' : ''}`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="planner-list">
-                {groupedProducts.length ? groupedProducts.map(group => {
-                  const expanded = expandedCategories[group.id];
-                  const selectedCount = selectedCountForCategory(group.id, allProducts, mealPlan);
+                {filteredProducts.length ? filteredProducts.map(item => {
+                  const activeDayMeals = mealPlan[activeDay];
+                  const quantity = Array.isArray(activeDayMeals) ? activeDayMeals.filter(meal => meal === item.name).length : 0;
                   return (
-                    <section className="meal-category" key={group.id}>
-                      <button className="meal-category-header" onClick={() => setExpandedCategories(current => ({ ...current, [group.id]: !current[group.id] }))}>
-                        <span className="meal-category-title">
-                          {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                          {group.label}
-                        </span>
-                        <span className="meal-category-count">{selectedCount} Selected</span>
-                      </button>
-                      {expanded && (
-                        <div className="meal-category-items">
-                          {group.items.map(item => {
-                            const quantity = mealPlan[activeDay]?.filter(meal => meal === item.name).length || 0;
-                            return (
-                              <div key={item.name} className="planner-item subscription-item-card">
-                                <img 
-                                  src={item.image && (item.image.startsWith('http') || item.image.startsWith('data:')) ? item.image : (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100')} 
-                                  alt={item.name} 
-                                  className="subscription-item-img" 
-                                  loading="lazy"
-                                />
-                                <div className="item-details-left">
-                                  <div className="item-title-row">
-                                    <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
-                                    <span className="item-name-text">{item.name}</span>
-                                  </div>
-                                  {item.description && <p className="item-desc-text">{item.description}</p>}
-                                  <div className="item-meta-row">
-                                    {item.calories ? <span className="item-macro">🔥 {item.calories} kcal</span> : null}
-                                    {item.protein ? <span className="item-macro">💪 {item.protein}g protein</span> : null}
-                                    <span className="item-price-text">₹{item.price}</span>
-                                  </div>
-                                </div>
-                                <div className="item-actions-right">
-                                  {quantity === 0 ? (
-                                    <button className="add-btn" onClick={() => updateMeal(item.name, 'add')}><Plus size={14} /> Add</button>
-                                  ) : (
-                                    <div className="qty-stepper">
-                                      <button onClick={() => updateMeal(item.name, 'remove')}>-</button>
-                                      <span>{quantity}</span>
-                                      <button onClick={() => updateMeal(item.name, 'add')}>+</button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                    <div key={item.name} className="planner-item subscription-item-card">
+                      <img 
+                        src={item.image && (item.image.startsWith('http') || item.image.startsWith('data:')) ? item.image : (item.id ? `/api/products/${item.id}/image` : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100')} 
+                        alt={item.name} 
+                        className="subscription-item-img" 
+                        loading="lazy"
+                      />
+                      <div className="item-details-left">
+                        <div className="item-title-row">
+                          <span className={`veg-dot ${item.isVeg ? 'veg' : 'non-veg'}`}></span>
+                          <span className="item-name-text">{item.name}</span>
                         </div>
-                      )}
-                    </section>
+                        {item.description && <p className="item-desc-text">{item.description}</p>}
+                        <div className="item-meta-row">
+                          {item.calories ? <span className="item-macro">🔥 {item.calories} kcal</span> : null}
+                          {item.protein ? <span className="item-macro">💪 {item.protein}g protein</span> : null}
+                          <span className="item-price-text">₹{item.price}</span>
+                        </div>
+                      </div>
+                      <div className="item-actions-right">
+                        {quantity === 0 ? (
+                          <button type="button" className="add-btn" onClick={() => updateMeal(item.name, 'add')}><Plus size={14} /> Add</button>
+                        ) : (
+                          <div className="qty-stepper">
+                            <button type="button" onClick={() => updateMeal(item.name, 'remove')}>-</button>
+                            <span>{quantity}</span>
+                            <button type="button" onClick={() => updateMeal(item.name, 'add')}>+</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   );
                 }) : <div className="no-results">No items found matching "{searchTerm}"</div>}
               </div>
 
-              <button className="planner-send" onClick={() => {
-                const totalMeals = Object.values(mealPlan).flat().length;
-                if (totalMeals === 0) {
+              <button type="button" className="planner-send" onClick={() => {
+                if (totalSelectedCount === 0) {
                   alert('Please select at least one meal before proceeding.');
                   return;
                 }
@@ -393,7 +461,7 @@ ${routineText}`;
             <div className="planner-content">
               <div className="planner-header">
                 <h3>Delivery Details</h3>
-                <button className="close-btn" onClick={() => setShowDeliveryForm(false)}><X size={18} /></button>
+                <button type="button" className="close-btn" onClick={() => setShowDeliveryForm(false)}><X size={18} /></button>
               </div>
               
               <div className="delivery-step-info">
@@ -421,13 +489,13 @@ ${routineText}`;
               </div>
               
               <div className="delivery-actions">
-                <button className="btn-outline" onClick={() => {
+                <button type="button" className="btn-outline" onClick={() => {
                   setShowDeliveryForm(false);
                   setShowPlanner(true);
                 }}>
                   ← Back to Meals
                 </button>
-                <button className="planner-send" onClick={saveAndOpenWhatsApp} disabled={isSaving} style={{ margin: 0 }}>
+                <button type="button" className="planner-send" onClick={saveAndOpenWhatsApp} disabled={isSaving} style={{ margin: 0 }}>
                   {isSaving ? 'Saving...' : 'Confirm & Send to WhatsApp'}
                 </button>
               </div>

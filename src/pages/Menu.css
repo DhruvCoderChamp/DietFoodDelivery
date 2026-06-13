@@ -214,3 +214,214 @@
 @media (max-width: 350px) {
   .menu-grid { grid-template-columns: 1fr; }
 }
+
+/* Delivery Banner Styles (Swish style) */
+.delivery-banner-pill {
+  position: relative;
+  background: linear-gradient(100deg, #1A3620 0%, #2D6A1F 50%, #1A3620 100%);
+  border-radius: 20px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(45, 106, 31, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  height: 85px;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.delivery-banner-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(45, 106, 31, 0.25);
+}
+
+/* Badge in top left corner */
+.banner-badge {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  background: #fff;
+  color: #2D6A1F;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Left side: My Morning logo */
+.banner-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 6px;
+  z-index: 2;
+}
+
+.banner-title-main {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.banner-title-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a3e635;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+
+/* Center decoration */
+.banner-center-decor {
+  position: absolute;
+  left: 42%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.delivery-icon-box {
+  font-size: 26px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transform: rotate(-5deg);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  animation: banner-float 3s ease-in-out infinite;
+}
+
+.speed-line {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  width: 80px;
+  transform: rotate(-15deg);
+}
+
+.speed-line:nth-child(1) {
+  top: -10px;
+  left: -90px;
+  animation: speed-flow 1.5s linear infinite;
+}
+
+.speed-line:nth-child(2) {
+  bottom: -10px;
+  left: -80px;
+  animation: speed-flow 1.5s linear infinite 0.75s;
+}
+
+@keyframes banner-float {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-4px) rotate(-3deg); }
+}
+
+@keyframes speed-flow {
+  0% { transform: translate(-30px, -5px) rotate(-15deg) scaleX(0.5); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translate(60px, 10px) rotate(-15deg) scaleX(1.5); opacity: 0; }
+}
+
+/* Right side: Promo text & Arrow button */
+.banner-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+}
+
+.banner-promo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.promo-highlight {
+  font-size: 20px;
+  font-weight: 900;
+  color: #FACC15;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.promo-sub {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0.9;
+}
+
+.banner-arrow-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  color: #2D6A1F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease;
+}
+
+.delivery-banner-pill:hover .banner-arrow-circle {
+  transform: scale(1.1) translateX(2px);
+}
+
+/* Responsive banner styles */
+@media (max-width: 600px) {
+  .delivery-banner-pill {
+    height: 70px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+  }
+  .banner-badge {
+    top: 6px;
+    left: 10px;
+    font-size: 7px;
+    padding: 1px 6px;
+  }
+  .banner-title-main {
+    font-size: 14px;
+  }
+  .banner-title-sub {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .banner-center-decor {
+    display: none;
+  }
+  .promo-highlight {
+    font-size: 15px;
+  }
+  .promo-sub {
+    font-size: 10px;
+  }
+  .banner-arrow-circle {
+    width: 26px;
+    height: 26px;
+  }
+  .banner-arrow-circle svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+

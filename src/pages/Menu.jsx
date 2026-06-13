@@ -60,7 +60,14 @@ export default function Menu() {
       }));
     }
     if (search.trim()) list = list.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-    return list;
+
+    // Deduplicate by ID to prevent key duplication warnings
+    const seen = new Set();
+    return list.filter(item => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
   }, [activeCategory, activeTags, search, dbItems]);
 
   const handleAdd = (item) => {
@@ -85,6 +92,31 @@ export default function Menu() {
       </div>
 
       <div className="container menu-content">
+        {/* Free Delivery Banner (Swish style) */}
+        <div className="delivery-banner-pill">
+          <div className="banner-badge">FREE</div>
+          <div className="banner-left">
+            <span className="banner-title-main">mymorning</span>
+            <span className="banner-title-sub">delivery</span>
+          </div>
+          <div className="banner-center-decor">
+            <div className="speed-line"></div>
+            <div className="speed-line"></div>
+            <div className="delivery-icon-box">🚚</div>
+          </div>
+          <div className="banner-right">
+            <div className="banner-promo-text">
+              <span className="promo-highlight">Free Delivery</span>
+              <span className="promo-sub">on every single order</span>
+            </div>
+            <div className="banner-arrow-circle">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
         {/* Search + Filter bar */}
         <div className="menu-toolbar">
           <div className="search-wrap">

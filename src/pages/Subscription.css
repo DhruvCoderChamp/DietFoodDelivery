@@ -520,6 +520,8 @@
     max-height: 92dvh;
     border-radius: 20px 20px 0 0;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   /* Horizontal scrollable day tabs */
@@ -554,9 +556,12 @@
 
   /* Right content */
   .planner-content {
-    padding: 14px 16px;
+    padding: 14px 12px;
     flex: 1;
     min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .planner-header {
@@ -579,7 +584,66 @@
     flex-wrap: nowrap;
     align-items: center;
     gap: 10px;
-    padding: 12px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .subscription-item-img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .item-name-text {
+    font-size: 13px;
+  }
+
+  .item-desc-text {
+    font-size: 10.5px;
+  }
+
+  .item-price-text {
+    font-size: 12.5px;
+  }
+
+  .add-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .qty-stepper {
+    gap: 5px;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+
+  .qty-stepper button {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+
+  .qty-stepper span {
+    font-size: 12px;
+  }
+
+  .item-actions-right {
+    min-width: 72px;
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .planner-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* Send button */
@@ -821,3 +885,31 @@
   align-items: center;
   flex-shrink: 0;
 }
+
+/* Category Tabs in Subscription Planner */
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.category-tabs::-webkit-scrollbar { display: none; }
+.cat-tab {
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 1.5px solid #e2ebd4;
+  background: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.cat-tab:hover { border-color: #2d6a1f; color: #2d6a1f; }
+.cat-tab.cat-active { background: #2d6a1f; color: #fff; border-color: #2d6a1f; }

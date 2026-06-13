@@ -34,6 +34,11 @@ export default function Admin() {
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Excel Edit Grid States
+  const [gridData, setGridData] = useState([]);
+  const [modifiedRowIds, setModifiedRowIds] = useState(new Set());
+  const [isBulkSaving, setIsBulkSaving] = useState(false);
   
   // Manual Order state
   const [manualOrder, setManualOrder] = useState({ name: '', phone: '', address: '', timeSlot: '', details: '', price: '' });
@@ -82,6 +87,128 @@ export default function Admin() {
       Promise.all([fetchItems(), fetchOrders(), fetchSubscriptions(), fetchHomepageImage()]).finally(() => setLoading(false));
     }
   }, [isAdmin]);
+
+  const createBlankRow = (index) => ({
+    tempId: `temp-${Date.now()}-${index}`,
+    name: '',
+    price: '',
+    calories: '',
+    protein: '',
+    category: '',
+    isVeg: '',
+    isAvailable: '',
+    description: '',
+    image: '',
+    badge: 'New',
+    tags: []
+  });
+
+  const generateInitialBlankRows = (count = 10) => {
+    return Array.from({ length: count }, (_, i) => createBlankRow(i));
+  };
+
+  useEffect(() => {
+    setGridData(generateInitialBlankRows(10));
+    setModifiedRowIds(new Set());
+  }, [activeTab]);
+
+  const handleGridCellChange = (tempId, field, value) => {
+    setGridData(prev => prev.map(item => {
+      if (item.tempId === tempId) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    }));
+    setModifiedRowIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(tempId);
+      return newSet;
+    });
+  };
+
+  const handleAddGridRow = () => {
+    setGridData(prev => [...prev, createBlankRow(prev.length)]);
+  };
+
+  const handleBulkCancel = () => {
+    if (window.confirm("Discard all edits and clear the sheet?")) {
+      setGridData(generateInitialBlankRows(10));
+      setModifiedRowIds(new Set());
+    }
+  };
+
+  const handleBulkSave = async () => {
+    const rowsToSave = gridData.filter(row => row.name.trim() !== '' || row.price !== '');
+
+    if (rowsToSave.length === 0) {
+      alert("No products have been entered. Please fill in Name and Price to save.");
+      return;
+    }
+
+    for (const row of rowsToSave) {
+      if (!row.name.trim()) {
+        alert("Validation error: All entered products must have a Name.");
+        return;
+      }
+      if (row.price === undefined || row.price === null || row.price === '' || isNaN(Number(row.price))) {
+        alert(`Validation error: Product "${row.name}" must have a valid Price.`);
+        return;
+      }
+      if (!row.category) {
+        alert(`Validation error: Product "${row.name}" must have a selected Category.`);
+        return;
+      }
+      if (row.isVeg === '') {
+        alert(`Validation error: Product "${row.name}" must have a selected Diet Type.`);
+        return;
+      }
+      if (row.isAvailable === '') {
+        alert(`Validation error: Product "${row.name}" must have a selected Stock Status.`);
+        return;
+      }
+    }
+
+    setIsBulkSaving(true);
+    try {
+      const savePromises = rowsToSave.map(async (row) => {
+        const payload = {
+          name: row.name,
+          price: Number(row.price),
+          calories: Number(row.calories || 0),
+          protein: Number(row.protein || 0),
+          category: row.category,
+          isVeg: row.isVeg,
+          isAvailable: row.isAvailable,
+          description: row.description || '',
+          image: row.image || '',
+          badge: row.badge || 'New',
+          tags: row.tags || []
+        };
+
+        const res = await authFetch('/api/admin/products', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errMsg = await res.text();
+          throw new Error(`Failed to save "${row.name}": ${res.status} - ${errMsg}`);
+        }
+      });
+
+      await Promise.all(savePromises);
+      alert("All new products saved successfully!");
+      setModifiedRowIds(new Set());
+      setGridData(generateInitialBlankRows(10));
+      await fetchItems();
+      window.dispatchEvent(new Event('mm-products-updated'));
+    } catch (err) {
+      console.error("Error bulk saving products:", err);
+      alert(`Error saving products: ${err.message}`);
+    } finally {
+      setIsBulkSaving(false);
+    }
+  };
 
   const fetchItems = async () => {
     try {
@@ -424,6 +551,7 @@ export default function Admin() {
             { id: 'dashboard', label: 'Dashboard' },
             { id: 'orders', label: 'Orders' },
             { id: 'menu', label: 'Products' },
+            { id: 'excel_edit', label: 'Excel Edit' },
             { id: 'calendar', label: 'Calendar' },
             { id: 'reports', label: 'Reports' },
             { id: 'manual_order', label: 'Manual Order' },
@@ -473,6 +601,7 @@ export default function Admin() {
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
               { id: 'orders', label: 'Orders', icon: '📦' },
               { id: 'menu', label: 'Manage Products', icon: '🍱' },
+              { id: 'excel_edit', label: 'Excel Edit', icon: '📝' },
               { id: 'calendar', label: 'Calendar View', icon: '📅' },
               { id: 'reports', label: 'Reports & Export', icon: '📑' },
               { id: 'manual_order', label: 'Manual Order', icon: '➕' },
@@ -836,6 +965,151 @@ export default function Admin() {
                 </div>
                 <button className="btn-primary" onClick={handleManualOrderSubmit} style={{ marginTop: '15px' }}>
                   <Plus size={16} /> Create Order
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Excel Edit Sheet */}
+          {activeTab === 'excel_edit' && (
+            <div>
+              <div className="admin-top-bar">
+                <div className="admin-page-title">Excel Sheet Editor</div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    className="btn-outline" 
+                    onClick={handleBulkCancel} 
+                    disabled={isBulkSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className={`btn-primary ${isBulkSaving ? 'btn-loading' : 'btn-dark-admin'}`} 
+                    onClick={handleBulkSave} 
+                    disabled={isBulkSaving}
+                  >
+                    {isBulkSaving ? (
+                      <><RefreshCw size={15} className="spinner" /> Saving...</>
+                    ) : (
+                      <><Check size={15} /> Save Changes</>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {modifiedRowIds.size > 0 && (
+                <div className="excel-alert-banner">
+                  ⚠️ You have <strong>{modifiedRowIds.size}</strong> modified row{modifiedRowIds.size > 1 ? 's' : ''} with unsaved changes.
+                </div>
+              )}
+
+              <div className="excel-grid-container">
+                <table className="excel-grid-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px', textAlign: 'center' }}>Row</th>
+                      <th>Product Name</th>
+                      <th style={{ width: '120px' }}>Price (₹)</th>
+                      <th style={{ width: '150px' }}>Category</th>
+                      <th style={{ width: '110px' }}>Calories (kcal)</th>
+                      <th style={{ width: '100px' }}>Protein (g)</th>
+                      <th style={{ width: '130px' }}>Diet Type</th>
+                      <th style={{ width: '140px' }}>Stock Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(gridData) && gridData.map((row, idx) => {
+                      const isModified = modifiedRowIds.has(row.tempId);
+                      return (
+                        <tr key={row.tempId} className={isModified ? 'modified-row' : ''}>
+                          <td className="excel-row-num" style={{ textAlign: 'center', background: '#f8fafc', fontWeight: 600, color: '#64748b' }}>
+                            {idx + 1}
+                          </td>
+                          <td>
+                            <input 
+                              type="text" 
+                              className="excel-cell-input text-left" 
+                              placeholder="Product Name"
+                              value={row.name || ''} 
+                              onChange={e => handleGridCellChange(row.tempId, 'name', e.target.value)}
+                            />
+                          </td>
+                          <td>
+                            <input 
+                              type="number" 
+                              className="excel-cell-input text-right font-mono" 
+                              placeholder="Price"
+                              value={row.price === undefined || row.price === null ? '' : row.price} 
+                              onChange={e => handleGridCellChange(row.tempId, 'price', e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          </td>
+                          <td>
+                            <select 
+                              className="excel-cell-select" 
+                              value={row.category || ''} 
+                              onChange={e => handleGridCellChange(row.tempId, 'category', e.target.value)}
+                            >
+                              <option value="">— Select Category —</option>
+                              <option value="bowls">🥗 Bowls</option>
+                              <option value="smoothies">🥤 Smoothies</option>
+                              <option value="combos">🍱 Combos</option>
+                              <option value="breakfast">🌅 Breakfast</option>
+                              <option value="eggitarian">🥚 Eggitarian</option>
+                            </select>
+                          </td>
+                          <td>
+                            <input 
+                              type="number" 
+                              className="excel-cell-input text-right font-mono" 
+                              placeholder=""
+                              value={row.calories === undefined || row.calories === null ? '' : row.calories} 
+                              onChange={e => handleGridCellChange(row.tempId, 'calories', e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          </td>
+                          <td>
+                            <input 
+                              type="number" 
+                              className="excel-cell-input text-right font-mono" 
+                              placeholder=""
+                              value={row.protein === undefined || row.protein === null ? '' : row.protein} 
+                              onChange={e => handleGridCellChange(row.tempId, 'protein', e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                          </td>
+                          <td>
+                            <select 
+                              className="excel-cell-select" 
+                              value={row.isVeg === '' ? '' : (row.isVeg ? 'veg' : 'nonveg')} 
+                              onChange={e => handleGridCellChange(row.tempId, 'isVeg', e.target.value === '' ? '' : e.target.value === 'veg')}
+                            >
+                              <option value="">— Select Diet —</option>
+                              <option value="veg">🟢 Veg</option>
+                              <option value="nonveg">🔴 Non-Veg</option>
+                            </select>
+                          </td>
+                          <td>
+                            <select 
+                              className="excel-cell-select" 
+                              value={row.isAvailable === '' ? '' : (row.isAvailable ? 'available' : 'unavailable')} 
+                              onChange={e => handleGridCellChange(row.tempId, 'isAvailable', e.target.value === '' ? '' : e.target.value === 'available')}
+                            >
+                              <option value="">— Select Stock —</option>
+                              <option value="available">📦 In Stock</option>
+                              <option value="unavailable">❌ Out of Stock</option>
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
+                <button 
+                  className="btn-outline" 
+                  onClick={handleAddGridRow}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, padding: '8px 16px', borderRadius: '10px' }}
+                >
+                  ➕ Add New Row
                 </button>
               </div>
             </div>

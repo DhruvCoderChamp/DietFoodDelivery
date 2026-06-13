@@ -102,7 +102,7 @@ export const selectedCountForCategory = (categoryId, products, mealPlan) => {
       .map(product => product.name),
   );
 
-  return Object.values(mealPlan)
+  return Object.values(mealPlan || {})
     .flat()
     .filter(meal => productNames.has(meal))
     .length;
