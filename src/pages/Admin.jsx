@@ -30,7 +30,7 @@ export default function Admin() {
   const [homepageImageSaving, setHomepageImageSaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
+  const [newItem, setNewItem] = useState({ name: '', price: '', calories: '', protein: '', category: 'veg', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: 0 });
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -668,7 +668,7 @@ export default function Admin() {
       
       setShowAddModal(false);
       setEditItem(null);
-      setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
+      setNewItem({ name: '', price: '', calories: '', protein: '', category: 'veg', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length });
     } catch (err) { 
       console.error('CRITICAL: Error saving item', err); 
       alert('NETWORK ERROR: Connection failed. Check your signal.');
@@ -835,7 +835,7 @@ export default function Admin() {
             <div>
               <div className="admin-top-bar">
                 <div className="admin-page-title">Products ({items.length})</div>
-                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'bowls', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
+                <button className="btn-primary" onClick={() => { setEditItem(null); setNewItem({ name: '', price: '', calories: '', protein: '', category: 'veg', badge: 'New', tags: [], description: '', image: '', isVeg: true, isAvailable: true, orderIndex: items.length }); setShowAddModal(true); }}>
                   <Plus size={16} /> Add Product
                 </button>
               </div>
@@ -1910,10 +1910,20 @@ export default function Admin() {
                   <label className="form-label">Category</label>
                   <select className="form-input" value={newItem.category} onChange={e => setNewItem(p => ({ ...p, category: e.target.value }))}>
                     {[
+                      ['veg', 'Veg'],
+                      ['non-veg', 'Non veg'],
+                      ['eggs', 'Eggs'],
+                      ['breakfast', 'Breakfast'],
+                      ['lunch', 'Lunch'],
+                      ['dinner', 'Dinner'],
+                      ['juices', 'Juices'],
+                      ['protein-shakes', 'Protein shakes'],
+                      ['oatmeal-bowls', 'Oatmeal bowls'],
+                      ['salad-bowls', 'Salad bowls'],
+                      ['rice-bowls', 'Rice bowls'],
+                      ['combos', 'Combos'],
                       ['bowls', 'Bowls'],
                       ['smoothies', 'Smoothies'],
-                      ['combos', 'Combos'],
-                      ['breakfast', 'Breakfast'],
                       ['eggitarian', 'Eggitarian'],
                     ].map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
