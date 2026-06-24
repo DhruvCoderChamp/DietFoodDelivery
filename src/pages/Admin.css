@@ -617,79 +617,209 @@
   }
 }
 
-/* Excel Spreadsheet Styles */
-.excel-alert-banner {
-  background: #fff9db;
-  border: 1px solid #ffe066;
-  color: #856404;
+/* ==========================================================================
+   INTERACTIVE WORKBOOK STYLES
+   ========================================================================== */
+
+.workbook-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+/* Workbook Tab Bar */
+.workbook-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: #e2e8f0;
+  padding: 10px 10px 0;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  border: 1px solid #cbd5e1;
+  border-bottom: none;
+}
+
+.workbook-tab {
   padding: 12px 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #64748b;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  user-select: none;
 }
 
-.excel-grid-container {
+.workbook-tab:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* Color-Coded Sheet Tab Configurations */
+.workbook-tab.active-daily_orders {
   background: #fff;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-  overflow-x: auto;
-  max-width: 100%;
+  color: #3498db;
+  border-color: #cbd5e1;
+  border-top: 3px solid #3498db;
+}
+.workbook-tab.active-customers {
+  background: #fff;
+  color: #1abc9c;
+  border-color: #cbd5e1;
+  border-top: 3px solid #1abc9c;
+}
+.workbook-tab.active-subscriptions {
+  background: #fff;
+  color: #9b59b6;
+  border-color: #cbd5e1;
+  border-top: 3px solid #9b59b6;
+}
+.workbook-tab.active-pause_log {
+  background: #fff;
+  color: #f39c12;
+  border-color: #cbd5e1;
+  border-top: 3px solid #f39c12;
+}
+.workbook-tab.active-delivery_schedule {
+  background: #fff;
+  color: #2980b9;
+  border-color: #cbd5e1;
+  border-top: 3px solid #2980b9;
+}
+.workbook-tab.active-meal_preferences {
+  background: #fff;
+  color: #e67e22;
+  border-color: #cbd5e1;
+  border-top: 3px solid #e67e22;
+}
+.workbook-tab.active-settings {
+  background: #fff;
+  color: #7f8c8d;
+  border-color: #cbd5e1;
+  border-top: 3px solid #7f8c8d;
 }
 
-.excel-grid-table {
+/* Grid Container */
+.workbook-grid-container {
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+}
+
+/* Contextual Color-Coded Info Bars */
+.sheet-info-bar {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+}
+.sheet-info-bar.blue-info {
+  background-color: #ebf5fb;
+  border-color: #aed6f1;
+  color: #2c3e50;
+}
+.sheet-info-bar.teal-info {
+  background-color: #e8f8f5;
+  border-color: #a3e4d7;
+  color: #117a65;
+}
+.sheet-info-bar.purple-info {
+  background-color: #f5eef8;
+  border-color: #d7bde2;
+  color: #6c3483;
+}
+.sheet-info-bar.amber-info {
+  background-color: #fef9e7;
+  border-color: #f9e79f;
+  color: #7d6608;
+}
+.sheet-info-bar.coral-info {
+  background-color: #fdf2e9;
+  border-color: #f5cba7;
+  color: #7e5109;
+}
+.sheet-info-bar.gray-info {
+  background-color: #f2f4f4;
+  border-color: #d5dbdb;
+  color: #5d6d7e;
+}
+
+/* Table styling */
+.workbook-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 15px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.workbook-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  text-align: left;
   table-layout: fixed;
+  background: #fff;
 }
 
-.excel-grid-table th {
+.workbook-table th {
   background: #f8fafc;
   color: #475569;
   font-weight: 700;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-bottom: 2px solid #cbd5e1;
   border-right: 1px solid #e2e8f0;
   text-transform: uppercase;
   font-size: 11px;
   letter-spacing: 0.5px;
-  user-select: none;
+  text-align: left;
 }
 
-.excel-grid-table th:last-child {
+.workbook-table th:last-child {
   border-right: none;
 }
 
-.excel-grid-table td {
+.workbook-table td {
   padding: 0;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
-  height: 38px;
+  height: 44px;
   vertical-align: middle;
 }
 
-.excel-grid-table td:last-child {
+.workbook-table td:last-child {
   border-right: none;
 }
 
-.excel-row-num {
-  font-size: 11px;
-  user-select: none;
+/* Custom Table Row States */
+.dispatched-row {
+  background-color: #e2f0d9 !important; /* Soft green */
+}
+.dispatched-row td {
+  border-bottom-color: #c5e0b4 !important;
 }
 
-/* Excel Cell Inputs and Dropdowns */
-.excel-cell-input {
+/* Editable Cell Inputs and Dropdowns */
+.workbook-cell-input {
   width: 100%;
   height: 100%;
   border: 1px solid transparent;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-family: inherit;
   font-size: 13px;
   background: transparent;
@@ -699,12 +829,11 @@
   transition: all 0.15s ease;
 }
 
-.excel-cell-input:hover {
-  background: rgba(var(--green-main-rgb, 46, 117, 34), 0.03);
-  border-color: #cbd5e1;
+.workbook-cell-input:hover {
+  background: rgba(0,0,0,0.02);
 }
 
-.excel-cell-input:focus {
+.workbook-cell-input:focus {
   background: #fff;
   border-color: var(--green-main, #2e7522);
   box-shadow: inset 0 0 0 1px var(--green-main, #2e7522);
@@ -712,67 +841,215 @@
   position: relative;
 }
 
-.excel-cell-input.text-left {
-  text-align: left;
-}
-
-.excel-cell-input.text-right {
-  text-align: right;
-}
-
-.excel-cell-select {
+.workbook-cell-select {
   width: 100%;
   height: 100%;
   border: 1px solid transparent;
-  padding: 0 12px;
+  padding: 0 14px;
   font-family: inherit;
   font-size: 13px;
   background: transparent;
   color: #1e293b;
   outline: none;
   cursor: pointer;
-  appearance: none;
   box-sizing: border-box;
   transition: all 0.15s ease;
 }
 
-.excel-cell-select:hover {
-  background: rgba(var(--green-main-rgb, 46, 117, 34), 0.03);
-  border-color: #cbd5e1;
+.workbook-cell-select:hover {
+  background: rgba(0,0,0,0.02);
 }
 
-.excel-cell-select:focus {
+.workbook-cell-select:focus {
   background: #fff;
   border-color: var(--green-main, #2e7522);
   box-shadow: inset 0 0 0 1px var(--green-main, #2e7522);
 }
 
-/* Styling modified rows */
-.excel-grid-table tr.modified-row {
-  background-color: #f0fdf4;
+/* Read Only / Computed Cells */
+.read-only-cell {
+  background: #f8fafc;
+  color: #64748b;
+  padding: 10px 14px !important;
+  user-select: none;
 }
 
-.excel-grid-table tr.modified-row td {
-  border-bottom-color: #bbf7d0;
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+.status-badge.paused {
+  background: #fff3cd;
+  color: #856404;
+}
+.status-badge.expired {
+  background: #f8d7da;
+  color: #721c24;
 }
 
-.excel-grid-table tr.modified-row .excel-cell-input:not(:focus),
-.excel-grid-table tr.modified-row .excel-cell-select:not(:focus) {
-  color: #14532d;
+/* Green/Red Schedule cells */
+.schedule-cell-Y {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  font-weight: 700;
+}
+.schedule-cell-N {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  font-weight: 700;
+}
+
+/* Buttons */
+.btn-add-row {
+  margin-top: 15px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.btn-add-row:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 5px 10px;
+}
+.btn-delete:hover {
+  color: #ef4444;
+}
+
+/* Settings Column Layout */
+.settings-columns-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.settings-col {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.settings-col-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+}
+
+.settings-item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.settings-item-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 500;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.01);
 }
 
-.excel-grid-table tr:hover:not(.modified-row) {
-  background-color: #f8fafc;
+.settings-item-list li button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 2px 6px;
+  transition: color 0.2s;
 }
 
-.excel-grid-table tr:hover.modified-row {
-  background-color: #ecfdf5;
+.settings-item-list li button:hover {
+  color: #ef4444;
 }
+
+.settings-col-add-box {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-col-add-box input {
+  flex: 1;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+}
+
+.settings-col-add-box input:focus {
+  border-color: var(--green-main, #2e7522);
+}
+
+.settings-col-add-box button {
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--green-main, #2e7522);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.settings-col-add-box button:hover {
+  background: var(--green-dark, #1f5017);
+}
+
+/* Utilities */
+.font-mono { font-family: monospace; }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.italic { font-style: italic; }
 
 @media (max-width: 1024px) {
-  .excel-grid-table {
-    table-layout: auto;
+  .settings-columns-grid {
+    grid-template-columns: 1fr;
   }
 }
+
 

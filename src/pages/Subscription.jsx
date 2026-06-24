@@ -107,6 +107,35 @@ export default function Subscription() {
     fetchAllProducts();
   }, []);
 
+  useEffect(() => {
+    const fetchUserSubscription = async () => {
+      if (!user?.id) return;
+      try {
+        const res = await authFetch(`/api/subscriptions/user/${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setSelectedPlan(Number(data.planType) || 7);
+            setDeliveryArea(data.deliveryArea || '');
+            setAddress(data.address || '');
+            setDeliverySlot(data.deliverySlot || DELIVERY_SLOTS[0]);
+            if (data.mealsJson) {
+              try {
+                const parsedMeals = JSON.parse(data.mealsJson);
+                setMealPlan(sanitizeMealPlan(parsedMeals));
+              } catch (e) {
+                console.error("Failed to parse mealsJson from database:", e);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load subscription from database:", error);
+      }
+    };
+    fetchUserSubscription();
+  }, [user?.id]);
+
   const allProducts = useMemo(() => {
     const list = [];
     const seenNames = new Set();

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Edit2, Trash2, Package, Users, TrendingUp, RefreshCw, X, Check, Shield, Menu as MenuIcon, MapPin, Phone, GripVertical, LogOut } from 'lucide-react';
@@ -35,10 +35,16 @@ export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Excel Edit Grid States
-  const [gridData, setGridData] = useState([]);
-  const [modifiedRowIds, setModifiedRowIds] = useState(new Set());
-  const [isBulkSaving, setIsBulkSaving] = useState(false);
+  // Workbook State
+  const [workbook, setWorkbook] = useState(null);
+  const [activeSheet, setActiveSheet] = useState('daily_orders');
+  const [workbookLoading, setWorkbookLoading] = useState(false);
+  const [workbookSaving, setWorkbookSaving] = useState(false);
+  const [workbookUnsaved, setWorkbookUnsaved] = useState(false);
+  const [newBreakfastItem, setNewBreakfastItem] = useState('');
+  const [newLunchItem, setNewLunchItem] = useState('');
+  const [newDinnerItem, setNewDinnerItem] = useState('');
+
   
   // Manual Order state
   const [manualOrder, setManualOrder] = useState({ name: '', phone: '', address: '', timeSlot: '', details: '', price: '' });
@@ -88,127 +94,274 @@ export default function Admin() {
     }
   }, [isAdmin]);
 
-  const createBlankRow = (index) => ({
-    tempId: `temp-${Date.now()}-${index}`,
-    name: '',
-    price: '',
-    calories: '',
-    protein: '',
-    category: '',
-    isVeg: '',
-    isAvailable: '',
-    description: '',
-    image: '',
-    badge: 'New',
-    tags: []
-  });
-
-  const generateInitialBlankRows = (count = 10) => {
-    return Array.from({ length: count }, (_, i) => createBlankRow(i));
+  const DEFAULT_WORKBOOK = {
+    settings: {
+      breakfast: ["Poha", "Idli Sambhar", "Oatmeal Bowl", "Scrambled Eggs", "Upma", "Pancake"],
+      lunch: ["Paneer Bhurji Thali", "Chicken Salad Bowl", "Dal Khichdi", "Veg Pulav Thali", "Egg Curry Rice", "Fish Meal"],
+      dinner: ["Quinoa Salad", "Roti Curry Set", "Grilled Chicken Bowl", "Keto Salad", "Light Soup", "Fruit Bowl"]
+    },
+    customers: [
+      { id: "CUST-001", name: "Dhruv Sharma", phone: "9187532042", address: "Flat 302, Green Glen Layout, Bangalore" },
+      { id: "CUST-002", name: "Aishwarya Sen", phone: "9876543210", address: "Villa 15, Brookefield, Bangalore" },
+      { id: "CUST-003", name: "Sandeep Jha", phone: "9988776655", address: "AECS Layout, Whitefield, Bangalore" }
+    ],
+    subscriptions: [
+      { subscriptionId: "SUB-001", customerId: "CUST-001", planDays: 14, startDate: "2026-06-20" },
+      { subscriptionId: "SUB-002", customerId: "CUST-002", planDays: 30, startDate: "2026-06-15" }
+    ],
+    pauseLog: [
+      { subscriptionId: "SUB-001", startDate: "2026-06-22", endDate: "2026-06-23", reason: "Out of town" }
+    ],
+    deliverySchedule: [
+      { customerId: "CUST-001", Mon: "Y", Tue: "Y", Wed: "Y", Thu: "Y", Fri: "Y", Sat: "N", Sun: "N" },
+      { customerId: "CUST-002", Mon: "Y", Tue: "N", Wed: "Y", Thu: "N", Fri: "Y", Sat: "N", Sun: "N" }
+    ],
+    mealPreferences: [
+      {
+        customerId: "CUST-001",
+        Mon_Breakfast: "Poha", Mon_Lunch: "Paneer Bhurji Thali", Mon_Dinner: "Quinoa Salad",
+        Tue_Breakfast: "Idli Sambhar", Tue_Lunch: "Dal Khichdi", Tue_Dinner: "Roti Curry Set",
+        Wed_Breakfast: "Oatmeal Bowl", Wed_Lunch: "Chicken Salad Bowl", Wed_Dinner: "Grilled Chicken Bowl",
+        Thu_Breakfast: "Scrambled Eggs", Thu_Lunch: "Veg Pulav Thali", Thu_Dinner: "Keto Salad",
+        Fri_Breakfast: "Upma", Fri_Lunch: "Egg Curry Rice", Fri_Dinner: "Light Soup",
+        Sat_Breakfast: "", Sat_Lunch: "", Sat_Dinner: "",
+        Sun_Breakfast: "", Sun_Lunch: "", Sun_Dinner: ""
+      },
+      {
+        customerId: "CUST-002",
+        Mon_Breakfast: "Pancake", Mon_Lunch: "Chicken Salad Bowl", Mon_Dinner: "Fruit Bowl",
+        Tue_Breakfast: "", Tue_Lunch: "", Tue_Dinner: "",
+        Wed_Breakfast: "Oatmeal Bowl", Wed_Lunch: "Fish Meal", Wed_Dinner: "Grilled Chicken Bowl",
+        Thu_Breakfast: "", Thu_Lunch: "", Thu_Dinner: "",
+        Fri_Breakfast: "Scrambled Eggs", Fri_Lunch: "Egg Curry Rice", Fri_Dinner: "Keto Salad",
+        Sat_Breakfast: "", Sat_Lunch: "", Sat_Dinner: "",
+        Sun_Breakfast: "", Sun_Lunch: "", Sun_Dinner: ""
+      }
+    ],
+    dispatchedOrders: {}
   };
 
-  useEffect(() => {
-    setGridData(generateInitialBlankRows(10));
-    setModifiedRowIds(new Set());
-  }, [activeTab]);
+  const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-  const handleGridCellChange = (tempId, field, value) => {
-    setGridData(prev => prev.map(item => {
-      if (item.tempId === tempId) {
-        return { ...item, [field]: value };
+  const calculateDaysBetween = (startStr, endStr) => {
+    if (!startStr) return 0;
+    const start = new Date(startStr);
+    start.setHours(0,0,0,0);
+    const end = endStr ? new Date(endStr) : new Date();
+    end.setHours(0,0,0,0);
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const getSubscriptionCalculations = (sub, pauseLog) => {
+    if (!sub || !sub.startDate || !sub.planDays) {
+      return { originalEndDate: '', totalPauseDays: 0, effectiveEndDate: '', status: 'Expired' };
+    }
+    
+    const start = new Date(sub.startDate);
+    const planDays = parseInt(sub.planDays) || 0;
+    const originalEndDate = new Date(start.getTime() + (planDays * 24 * 60 * 60 * 1000));
+    const originalEndDateStr = isNaN(originalEndDate.getTime()) ? '' : originalEndDate.toISOString().split('T')[0];
+    
+    const subPauses = (pauseLog || []).filter(p => p.subscriptionId === sub.subscriptionId);
+    let totalPauseDays = 0;
+    let isCurrentlyPaused = false;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    subPauses.forEach(p => {
+      const pauseDays = calculateDaysBetween(p.startDate, p.endDate);
+      totalPauseDays += pauseDays;
+      
+      if (p.startDate) {
+        const pStart = new Date(p.startDate);
+        pStart.setHours(0,0,0,0);
+        const pEnd = p.endDate ? new Date(p.endDate) : null;
+        if (pEnd) pEnd.setHours(0,0,0,0);
+        
+        if (today >= pStart && (!pEnd || today <= pEnd)) {
+          isCurrentlyPaused = true;
+        }
       }
-      return item;
-    }));
-    setModifiedRowIds(prev => {
-      const newSet = new Set(prev);
-      newSet.add(tempId);
-      return newSet;
+    });
+    
+    const origEnd = new Date(originalEndDateStr);
+    const effectiveEndDate = new Date(origEnd.getTime() + (totalPauseDays * 24 * 60 * 60 * 1000));
+    const effectiveEndDateStr = isNaN(effectiveEndDate.getTime()) ? '' : effectiveEndDate.toISOString().split('T')[0];
+    
+    let status = 'Active';
+    if (isCurrentlyPaused) {
+      status = 'Paused';
+    } else if (effectiveEndDateStr && today > effectiveEndDate) {
+      status = 'Expired';
+    }
+    
+    return {
+      originalEndDate: originalEndDateStr,
+      totalPauseDays,
+      effectiveEndDate: effectiveEndDateStr,
+      status
+    };
+  };
+
+  const getNextDeliveryDate = (sch, subStatus) => {
+    if (subStatus === 'Paused') return 'N/A - Paused';
+    if (subStatus === 'Expired') return 'N/A - Expired';
+    if (!subStatus) return 'N/A - No Subscription';
+    
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    for (let i = 0; i < 8; i++) {
+      const checkDate = new Date();
+      checkDate.setDate(today.getDate() + i);
+      const dayName = daysOfWeek[checkDate.getDay()];
+      
+      if (sch[dayName] === 'Y') {
+        return checkDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+      }
+    }
+    return 'None Scheduled';
+  };
+
+  const getTodayOrders = () => {
+    if (!workbook) return [];
+    const today = new Date();
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const todayWeekday = daysOfWeek[today.getDay()];
+    
+    const todayStr = getLocalDateString(today);
+    const dispatchedForToday = workbook.dispatchedOrders?.[todayStr] || {};
+    
+    return (workbook.customers || []).map(customer => {
+      // Find subscription
+      const sub = (workbook.subscriptions || []).find(s => s.customerId === customer.id);
+      if (!sub) return null;
+      
+      // Compute subscription status
+      const { status } = getSubscriptionCalculations(sub, workbook.pauseLog);
+      if (status !== 'Active') return null;
+      
+      // Check delivery schedule
+      const schedule = (workbook.deliverySchedule || []).find(s => s.customerId === customer.id);
+      if (!schedule || schedule[todayWeekday] !== 'Y') return null;
+      
+      // Pull meals
+      const pref = (workbook.mealPreferences || []).find(p => p.customerId === customer.id);
+      const breakfast = pref?.[`${todayWeekday}_Breakfast`] || 'None';
+      const lunch = pref?.[`${todayWeekday}_Lunch`] || 'None';
+      const dinner = pref?.[`${todayWeekday}_Dinner`] || 'None';
+      
+      const isDispatched = !!dispatchedForToday[customer.id];
+      
+      return {
+        customerId: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+        breakfast,
+        lunch,
+        dinner,
+        isDispatched
+      };
+    }).filter(Boolean);
+  };
+
+  const toggleDispatch = (customerId) => {
+    const todayStr = getLocalDateString();
+    setWorkbook(prev => {
+      if (!prev) return prev;
+      const dispatched = { ...prev.dispatchedOrders };
+      if (!dispatched[todayStr]) {
+        dispatched[todayStr] = {};
+      }
+      dispatched[todayStr][customerId] = !dispatched[todayStr][customerId];
+      setWorkbookUnsaved(true);
+      return { ...prev, dispatchedOrders: dispatched };
     });
   };
 
-  const handleAddGridRow = () => {
-    setGridData(prev => [...prev, createBlankRow(prev.length)]);
-  };
-
-  const handleBulkCancel = () => {
-    if (window.confirm("Discard all edits and clear the sheet?")) {
-      setGridData(generateInitialBlankRows(10));
-      setModifiedRowIds(new Set());
-    }
-  };
-
-  const handleBulkSave = async () => {
-    const rowsToSave = gridData.filter(row => row.name.trim() !== '' || row.price !== '');
-
-    if (rowsToSave.length === 0) {
-      alert("No products have been entered. Please fill in Name and Price to save.");
-      return;
-    }
-
-    for (const row of rowsToSave) {
-      if (!row.name.trim()) {
-        alert("Validation error: All entered products must have a Name.");
-        return;
-      }
-      if (row.price === undefined || row.price === null || row.price === '' || isNaN(Number(row.price))) {
-        alert(`Validation error: Product "${row.name}" must have a valid Price.`);
-        return;
-      }
-      if (!row.category) {
-        alert(`Validation error: Product "${row.name}" must have a selected Category.`);
-        return;
-      }
-      if (row.isVeg === '') {
-        alert(`Validation error: Product "${row.name}" must have a selected Diet Type.`);
-        return;
-      }
-      if (row.isAvailable === '') {
-        alert(`Validation error: Product "${row.name}" must have a selected Stock Status.`);
-        return;
-      }
-    }
-
-    setIsBulkSaving(true);
+  const fetchWorkbook = async () => {
+    setWorkbookLoading(true);
     try {
-      const savePromises = rowsToSave.map(async (row) => {
-        const payload = {
-          name: row.name,
-          price: Number(row.price),
-          calories: Number(row.calories || 0),
-          protein: Number(row.protein || 0),
-          category: row.category,
-          isVeg: row.isVeg,
-          isAvailable: row.isAvailable,
-          description: row.description || '',
-          image: row.image || '',
-          badge: row.badge || 'New',
-          tags: row.tags || []
-        };
-
-        const res = await authFetch('/api/admin/products', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const errMsg = await res.text();
-          throw new Error(`Failed to save "${row.name}": ${res.status} - ${errMsg}`);
+      const res = await authFetch('/api/settings/excel_workbook');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.value) {
+          setWorkbook(JSON.parse(data.value));
+        } else {
+          setWorkbook(DEFAULT_WORKBOOK);
         }
-      });
-
-      await Promise.all(savePromises);
-      alert("All new products saved successfully!");
-      setModifiedRowIds(new Set());
-      setGridData(generateInitialBlankRows(10));
-      await fetchItems();
-      window.dispatchEvent(new Event('mm-products-updated'));
+      } else if (res.status === 404) {
+        setWorkbook(DEFAULT_WORKBOOK);
+      } else {
+        setWorkbook(DEFAULT_WORKBOOK);
+      }
     } catch (err) {
-      console.error("Error bulk saving products:", err);
-      alert(`Error saving products: ${err.message}`);
+      console.error('Error fetching workbook:', err);
+      setWorkbook(DEFAULT_WORKBOOK);
     } finally {
-      setIsBulkSaving(false);
+      setWorkbookLoading(false);
     }
   };
+
+  const saveWorkbook = async (dataToSave = workbook) => {
+    if (!dataToSave) return;
+    setWorkbookSaving(true);
+    try {
+      const res = await authFetch('/api/admin/settings/excel_workbook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: JSON.stringify(dataToSave) })
+      });
+      if (res.ok) {
+        alert('Workbook saved successfully! 📊');
+        setWorkbookUnsaved(false);
+      } else {
+        const errMsg = await res.text();
+        alert(`Error saving workbook: ${res.status} - ${errMsg}`);
+      }
+    } catch (err) {
+      console.error('Error saving workbook:', err);
+      alert(`Network error saving workbook: ${err.message}`);
+    } finally {
+      setWorkbookSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchWorkbook();
+    }
+  }, [isAdmin]);
+
+  const updateSheetData = (sheetKey, updater) => {
+    setWorkbook(prev => {
+      if (!prev) return prev;
+      const next = { ...prev, [sheetKey]: typeof updater === 'function' ? updater(prev[sheetKey]) : updater };
+      setWorkbookUnsaved(true);
+      return next;
+    });
+  };
+
+  const handleCellEdit = (sheetKey, rowIndex, fieldKey, val) => {
+    setWorkbook(prev => {
+      if (!prev) return prev;
+      const updatedSheet = [...prev[sheetKey]];
+      updatedSheet[rowIndex] = { ...updatedSheet[rowIndex], [fieldKey]: val };
+      setWorkbookUnsaved(true);
+      return { ...prev, [sheetKey]: updatedSheet };
+    });
+  };
+
 
   const fetchItems = async () => {
     try {
@@ -551,10 +704,11 @@ export default function Admin() {
             { id: 'dashboard', label: 'Dashboard' },
             { id: 'orders', label: 'Orders' },
             { id: 'menu', label: 'Products' },
-            { id: 'excel_edit', label: 'Excel Edit' },
+            { id: 'excel_edit', label: 'Excel Workbook' },
             { id: 'calendar', label: 'Calendar' },
             { id: 'reports', label: 'Reports' },
             { id: 'manual_order', label: 'Manual Order' },
+
           ].map(tab => (
             <button 
               key={tab.id}
@@ -601,7 +755,7 @@ export default function Admin() {
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
               { id: 'orders', label: 'Orders', icon: '📦' },
               { id: 'menu', label: 'Manage Products', icon: '🍱' },
-              { id: 'excel_edit', label: 'Excel Edit', icon: '📝' },
+              { id: 'excel_edit', label: 'Excel Workbook', icon: '🗂️' },
               { id: 'calendar', label: 'Calendar View', icon: '📅' },
               { id: 'reports', label: 'Reports & Export', icon: '📑' },
               { id: 'manual_order', label: 'Manual Order', icon: '➕' },
@@ -974,146 +1128,761 @@ export default function Admin() {
           {activeTab === 'excel_edit' && (
             <div>
               <div className="admin-top-bar">
-                <div className="admin-page-title">Excel Sheet Editor</div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div>
+                  <div className="admin-page-title">Interactive Delivery Workbook 📊</div>
+                  <p style={{ margin: '5px 0 0', color: '#6B7280', fontSize: '14px' }}>
+                    Seamlessly manage Customers, Subscriptions, Pauses, Schedules, and Meals. Changes sync to the database.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  {workbookUnsaved && (
+                    <span className="unsaved-badge" style={{ color: '#e67e22', fontWeight: 600, fontSize: '13px' }}>
+                      ⚠️ Unsaved changes
+                    </span>
+                  )}
                   <button 
                     className="btn-outline" 
-                    onClick={handleBulkCancel} 
-                    disabled={isBulkSaving}
+                    onClick={fetchWorkbook}
+                    disabled={workbookSaving || workbookLoading}
                   >
-                    Cancel
+                    Discard Edits
                   </button>
                   <button 
-                    className={`btn-primary ${isBulkSaving ? 'btn-loading' : 'btn-dark-admin'}`} 
-                    onClick={handleBulkSave} 
-                    disabled={isBulkSaving}
+                    className={`btn-primary ${workbookSaving ? 'btn-loading' : 'btn-dark-admin'}`} 
+                    onClick={() => saveWorkbook()} 
+                    disabled={workbookSaving || workbookLoading}
                   >
-                    {isBulkSaving ? (
+                    {workbookSaving ? (
                       <><RefreshCw size={15} className="spinner" /> Saving...</>
                     ) : (
-                      <><Check size={15} /> Save Changes</>
+                      <><Check size={15} /> Save Workbook</>
                     )}
                   </button>
                 </div>
               </div>
 
-              {modifiedRowIds.size > 0 && (
-                <div className="excel-alert-banner">
-                  ⚠️ You have <strong>{modifiedRowIds.size}</strong> modified row{modifiedRowIds.size > 1 ? 's' : ''} with unsaved changes.
+              {!workbook ? (
+                <div style={{ padding: '40px', textAlign: 'center', background: '#fff', borderRadius: '12px' }}>
+                  <RefreshCw size={32} className="spinner" style={{ margin: '0 auto 15px', display: 'block', color: 'var(--green-main)' }} />
+                  <p>Loading Delivery Workbook...</p>
+                </div>
+              ) : (
+                <div className="workbook-container">
+                  {/* Sheet Tabs */}
+                  <div className="workbook-tabs">
+                    <button className={`workbook-tab ${activeSheet === 'daily_orders' ? 'active-daily_orders' : ''}`} onClick={() => setActiveSheet('daily_orders')}>
+                      📅 Daily Orders
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'customers' ? 'active-customers' : ''}`} onClick={() => setActiveSheet('customers')}>
+                      👥 Customers
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'subscriptions' ? 'active-subscriptions' : ''}`} onClick={() => setActiveSheet('subscriptions')}>
+                      💳 Subscriptions
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'pause_log' ? 'active-pause_log' : ''}`} onClick={() => setActiveSheet('pause_log')}>
+                      ⏸️ Pause Log
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'delivery_schedule' ? 'active-delivery_schedule' : ''}`} onClick={() => setActiveSheet('delivery_schedule')}>
+                      🚚 Delivery Schedule
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'meal_preferences' ? 'active-meal_preferences' : ''}`} onClick={() => setActiveSheet('meal_preferences')}>
+                      🥗 Meal Preferences
+                    </button>
+                    <button className={`workbook-tab ${activeSheet === 'settings' ? 'active-settings' : ''}`} onClick={() => setActiveSheet('settings')}>
+                      ⚙️ Settings
+                    </button>
+                  </div>
+
+                  {/* Active Sheet Grid */}
+                  <div className="workbook-grid-container shadow-sm">
+                    
+                    {/* SHEET 1: DAILY ORDERS (BLUE) */}
+                    {activeSheet === 'daily_orders' && (() => {
+                      const todayOrders = getTodayOrders();
+                      return (
+                        <div>
+                          <div className="sheet-info-bar blue-info">
+                            <strong>Daily Deliveries</strong> — Filtered for today (<strong>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</strong>). Displays active and scheduled subscriptions. Mark <strong>✓</strong> to green-light dispatch.
+                          </div>
+                          <div className="workbook-table-wrapper">
+                            <table className="workbook-table">
+                              <thead>
+                                <tr>
+                                  <th style={{ width: '100px' }}>Cust ID</th>
+                                  <th style={{ width: '150px' }}>Customer Name</th>
+                                  <th style={{ width: '120px' }}>Phone</th>
+                                  <th>Delivery Address</th>
+                                  <th style={{ width: '150px' }}>🌅 Breakfast</th>
+                                  <th style={{ width: '150px' }}>🥗 Lunch</th>
+                                  <th style={{ width: '150px' }}>🍛 Dinner</th>
+                                  <th style={{ width: '90px', textAlign: 'center' }}>Dispatch</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {todayOrders.map((row, idx) => (
+                                  <tr key={row.customerId} className={row.isDispatched ? 'dispatched-row' : ''}>
+                                    <td className="row-cell font-mono">{row.customerId}</td>
+                                    <td className="row-cell font-bold">{row.name}</td>
+                                    <td className="row-cell font-mono">{row.phone}</td>
+                                    <td className="row-cell font-medium">{row.address}</td>
+                                    <td className="row-cell italic">{row.breakfast}</td>
+                                    <td className="row-cell italic">{row.lunch}</td>
+                                    <td className="row-cell italic">{row.dinner}</td>
+                                    <td className="row-cell" style={{ textAlign: 'center' }}>
+                                      <input 
+                                        type="checkbox" 
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        checked={row.isDispatched}
+                                        onChange={() => toggleDispatch(row.customerId)}
+                                      />
+                                    </td>
+                                  </tr>
+                                ))}
+                                {todayOrders.length === 0 && (
+                                  <tr>
+                                    <td colSpan="8" style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                                      No deliveries scheduled for today.
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* SHEET 2: CUSTOMERS (TEAL) */}
+                    {activeSheet === 'customers' && (
+                      <div>
+                        <div className="sheet-info-bar teal-info">
+                          <strong>Customer Master Register</strong> — Register customers here first. Other sheets reference them dynamically by Customer ID.
+                        </div>
+                        <div className="workbook-table-wrapper">
+                          <table className="workbook-table">
+                            <thead>
+                              <tr>
+                                <th style={{ width: '120px' }}>Customer ID</th>
+                                <th style={{ width: '200px' }}>Name</th>
+                                <th style={{ width: '150px' }}>Phone</th>
+                                <th>Delivery Address</th>
+                                <th style={{ width: '60px', textAlign: 'center' }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(workbook.customers || []).map((row, idx) => (
+                                <tr key={idx}>
+                                  <td className="row-cell">
+                                    <input 
+                                      type="text" 
+                                      className="workbook-cell-input font-mono" 
+                                      value={row.id || ''}
+                                      onChange={e => handleCellEdit('customers', idx, 'id', e.target.value)}
+                                      placeholder="CUST-000"
+                                    />
+                                  </td>
+                                  <td className="row-cell">
+                                    <input 
+                                      type="text" 
+                                      className="workbook-cell-input font-bold" 
+                                      value={row.name || ''}
+                                      onChange={e => handleCellEdit('customers', idx, 'name', e.target.value)}
+                                      placeholder="Name"
+                                    />
+                                  </td>
+                                  <td className="row-cell">
+                                    <input 
+                                      type="text" 
+                                      className="workbook-cell-input font-mono" 
+                                      value={row.phone || ''}
+                                      onChange={e => handleCellEdit('customers', idx, 'phone', e.target.value)}
+                                      placeholder="Phone"
+                                    />
+                                  </td>
+                                  <td className="row-cell">
+                                    <input 
+                                      type="text" 
+                                      className="workbook-cell-input" 
+                                      value={row.address || ''}
+                                      onChange={e => handleCellEdit('customers', idx, 'address', e.target.value)}
+                                      placeholder="Address"
+                                    />
+                                  </td>
+                                  <td className="row-cell" style={{ textAlign: 'center' }}>
+                                    <button 
+                                      className="btn-delete"
+                                      onClick={() => {
+                                        if (window.confirm(`Delete customer ${row.id}? This will break references.`)) {
+                                          const updated = [...workbook.customers];
+                                          updated.splice(idx, 1);
+                                          updateSheetData('customers', updated);
+                                        }
+                                      }}
+                                    >
+                                      ✕
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <button 
+                          className="btn-add-row"
+                          onClick={() => {
+                            const nextNum = (workbook.customers || []).length + 1;
+                            const newCust = { id: `CUST-${String(nextNum).padStart(3, '0')}`, name: '', phone: '', address: '' };
+                            updateSheetData('customers', prev => [...(prev || []), newCust]);
+                          }}
+                        >
+                          ➕ Add Customer Row
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SHEET 3: SUBSCRIPTIONS (PURPLE) */}
+                    {activeSheet === 'subscriptions' && (
+                      <div>
+                        <div className="sheet-info-bar purple-info">
+                          <strong>Subscription Tracking</strong> — Effective End Date extends automatically based on logs in the Pause Log. Status auto-calculates.
+                        </div>
+                        <div className="workbook-table-wrapper">
+                          <table className="workbook-table">
+                            <thead>
+                              <tr>
+                                <th style={{ width: '120px' }}>Sub ID</th>
+                                <th style={{ width: '160px' }}>Customer ID</th>
+                                <th style={{ width: '100px' }}>Plan Days</th>
+                                <th style={{ width: '130px' }}>Start Date</th>
+                                <th style={{ width: '130px' }}>Original End</th>
+                                <th style={{ width: '110px' }}>Pause Days</th>
+                                <th style={{ width: '130px' }}>Effective End</th>
+                                <th style={{ width: '110px' }}>Status</th>
+                                <th style={{ width: '60px', textAlign: 'center' }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(workbook.subscriptions || []).map((row, idx) => {
+                                const calcs = getSubscriptionCalculations(row, workbook.pauseLog);
+                                return (
+                                  <tr key={idx}>
+                                    <td className="row-cell">
+                                      <input 
+                                        type="text" 
+                                        className="workbook-cell-input font-mono" 
+                                        value={row.subscriptionId || ''}
+                                        onChange={e => handleCellEdit('subscriptions', idx, 'subscriptionId', e.target.value)}
+                                        placeholder="SUB-000"
+                                      />
+                                    </td>
+                                    <td className="row-cell">
+                                      <select 
+                                        className="workbook-cell-select font-mono"
+                                        value={row.customerId || ''}
+                                        onChange={e => handleCellEdit('subscriptions', idx, 'customerId', e.target.value)}
+                                      >
+                                        <option value="">— Select Cust —</option>
+                                        {(workbook.customers || []).map(c => (
+                                          <option key={c.id} value={c.id}>{c.id} ({c.name})</option>
+                                        ))}
+                                      </select>
+                                    </td>
+                                    <td className="row-cell">
+                                      <select 
+                                        className="workbook-cell-select"
+                                        value={row.planDays || 7}
+                                        onChange={e => handleCellEdit('subscriptions', idx, 'planDays', parseInt(e.target.value))}
+                                      >
+                                        <option value={7}>7 Days</option>
+                                        <option value={14}>14 Days</option>
+                                        <option value={21}>21 Days</option>
+                                        <option value={30}>30 Days</option>
+                                      </select>
+                                    </td>
+                                    <td className="row-cell">
+                                      <input 
+                                        type="date" 
+                                        className="workbook-cell-input" 
+                                        value={row.startDate || ''}
+                                        onChange={e => handleCellEdit('subscriptions', idx, 'startDate', e.target.value)}
+                                      />
+                                    </td>
+                                    <td className="row-cell read-only-cell font-mono">{calcs.originalEndDate}</td>
+                                    <td className="row-cell read-only-cell font-mono" style={{ textAlign: 'center' }}>{calcs.totalPauseDays}</td>
+                                    <td className="row-cell read-only-cell font-mono font-bold">{calcs.effectiveEndDate}</td>
+                                    <td className="row-cell read-only-cell" style={{ textAlign: 'center' }}>
+                                      <span className={`status-badge ${calcs.status.toLowerCase()}`}>
+                                        {calcs.status}
+                                      </span>
+                                    </td>
+                                    <td className="row-cell" style={{ textAlign: 'center' }}>
+                                      <button 
+                                        className="btn-delete"
+                                        onClick={() => {
+                                          if (window.confirm(`Delete subscription ${row.subscriptionId}?`)) {
+                                            const updated = [...workbook.subscriptions];
+                                            updated.splice(idx, 1);
+                                            updateSheetData('subscriptions', updated);
+                                          }
+                                        }}
+                                      >
+                                        ✕
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <button 
+                          className="btn-add-row"
+                          onClick={() => {
+                            const nextNum = (workbook.subscriptions || []).length + 1;
+                            const newSub = {
+                              subscriptionId: `SUB-${String(nextNum).padStart(3, '0')}`,
+                              customerId: workbook.customers[0]?.id || '',
+                              planDays: 30,
+                              startDate: getLocalDateString()
+                            };
+                            updateSheetData('subscriptions', prev => [...(prev || []), newSub]);
+                          }}
+                        >
+                          ➕ Add Subscription Row
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SHEET 4: PAUSE LOG (AMBER) */}
+                    {activeSheet === 'pause_log' && (
+                      <div>
+                        <div className="sheet-info-bar amber-info">
+                          <strong>Subscription Pause Logs</strong> — Leave Pause End blank if still ongoing. Pause duration dynamically extends the subscription end date.
+                        </div>
+                        <div className="workbook-table-wrapper">
+                          <table className="workbook-table">
+                            <thead>
+                              <tr>
+                                <th style={{ width: '200px' }}>Subscription ID</th>
+                                <th style={{ width: '150px' }}>Pause Start</th>
+                                <th style={{ width: '150px' }}>Pause End</th>
+                                <th>Reason</th>
+                                <th style={{ width: '100px', textAlign: 'center' }}>Days</th>
+                                <th style={{ width: '60px', textAlign: 'center' }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(workbook.pauseLog || []).map((row, idx) => {
+                                const days = calculateDaysBetween(row.startDate, row.endDate);
+                                return (
+                                  <tr key={idx}>
+                                    <td className="row-cell">
+                                      <select 
+                                        className="workbook-cell-select font-mono"
+                                        value={row.subscriptionId || ''}
+                                        onChange={e => handleCellEdit('pauseLog', idx, 'subscriptionId', e.target.value)}
+                                      >
+                                        <option value="">— Select Sub ID —</option>
+                                        {(workbook.subscriptions || []).map(s => {
+                                          const cust = (workbook.customers || []).find(c => c.id === s.customerId);
+                                          return (
+                                            <option key={s.subscriptionId} value={s.subscriptionId}>
+                                              {s.subscriptionId} ({cust?.name || 'Unknown'})
+                                            </option>
+                                          );
+                                        })}
+                                      </select>
+                                    </td>
+                                    <td className="row-cell">
+                                      <input 
+                                        type="date" 
+                                        className="workbook-cell-input" 
+                                        value={row.startDate || ''}
+                                        onChange={e => handleCellEdit('pauseLog', idx, 'startDate', e.target.value)}
+                                      />
+                                    </td>
+                                    <td className="row-cell">
+                                      <input 
+                                        type="date" 
+                                        className="workbook-cell-input" 
+                                        value={row.endDate || ''}
+                                        onChange={e => handleCellEdit('pauseLog', idx, 'endDate', e.target.value)}
+                                        placeholder="Ongoing"
+                                      />
+                                    </td>
+                                    <td className="row-cell">
+                                      <input 
+                                        type="text" 
+                                        className="workbook-cell-input" 
+                                        value={row.reason || ''}
+                                        onChange={e => handleCellEdit('pauseLog', idx, 'reason', e.target.value)}
+                                        placeholder="e.g. Travel, Illness"
+                                      />
+                                    </td>
+                                    <td className="row-cell read-only-cell font-mono font-bold" style={{ textAlign: 'center' }}>{days}</td>
+                                    <td className="row-cell" style={{ textAlign: 'center' }}>
+                                      <button 
+                                        className="btn-delete"
+                                        onClick={() => {
+                                          if (window.confirm('Delete this pause log row?')) {
+                                            const updated = [...workbook.pauseLog];
+                                            updated.splice(idx, 1);
+                                            updateSheetData('pauseLog', updated);
+                                          }
+                                        }}
+                                      >
+                                        ✕
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <button 
+                          className="btn-add-row"
+                          onClick={() => {
+                            const newPause = {
+                              subscriptionId: workbook.subscriptions[0]?.subscriptionId || '',
+                              startDate: getLocalDateString(),
+                              endDate: '',
+                              reason: ''
+                            };
+                            updateSheetData('pauseLog', prev => [...(prev || []), newPause]);
+                          }}
+                        >
+                          ➕ Add Pause Log Row
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SHEET 5: DELIVERY SCHEDULE (BLUE) */}
+                    {activeSheet === 'delivery_schedule' && (
+                      <div>
+                        <div className="sheet-info-bar blue-info">
+                          <strong>Delivery Schedule Toggles</strong> — Enable or disable deliveries for each day. Cell turns <span style={{color:'#155724', fontWeight:700}}>green (Y)</span> or <span style={{color:'#721c24', fontWeight:700}}>red (N)</span>. Next Delivery Date calculates dynamically.
+                        </div>
+                        <div className="workbook-table-wrapper">
+                          <table className="workbook-table">
+                            <thead>
+                              <tr>
+                                <th style={{ width: '180px' }}>Customer ID</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Mon</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Tue</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Wed</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Thu</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Fri</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Sat</th>
+                                <th style={{ width: '80px', textAlign: 'center' }}>Sun</th>
+                                <th style={{ width: '180px' }}>Next Delivery Date</th>
+                                <th style={{ width: '60px', textAlign: 'center' }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(workbook.deliverySchedule || []).map((row, idx) => {
+                                const sub = (workbook.subscriptions || []).find(s => s.customerId === row.customerId);
+                                const calcs = getSubscriptionCalculations(sub, workbook.pauseLog);
+                                const nextDel = getNextDeliveryDate(row, sub ? calcs.status : null);
+                                return (
+                                  <tr key={idx}>
+                                    <td className="row-cell">
+                                      <select 
+                                        className="workbook-cell-select font-mono"
+                                        value={row.customerId || ''}
+                                        onChange={e => handleCellEdit('deliverySchedule', idx, 'customerId', e.target.value)}
+                                      >
+                                        <option value="">— Select Cust —</option>
+                                        {(workbook.customers || []).map(c => (
+                                          <option key={c.id} value={c.id}>{c.id} ({c.name})</option>
+                                        ))}
+                                      </select>
+                                    </td>
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                      <td key={day} className={`row-cell schedule-cell-${row[day] || 'N'}`} style={{ textAlign: 'center' }}>
+                                        <select
+                                          className="workbook-cell-select"
+                                          style={{ textAlignLast: 'center', background: 'transparent' }}
+                                          value={row[day] || 'N'}
+                                          onChange={e => handleCellEdit('deliverySchedule', idx, day, e.target.value)}
+                                        >
+                                          <option value="Y">Y</option>
+                                          <option value="N">N</option>
+                                        </select>
+                                      </td>
+                                    ))}
+                                    <td className="row-cell read-only-cell font-bold" style={{ color: 'var(--green-main)' }}>{nextDel}</td>
+                                    <td className="row-cell" style={{ textAlign: 'center' }}>
+                                      <button 
+                                        className="btn-delete"
+                                        onClick={() => {
+                                          if (window.confirm(`Delete schedule for customer ${row.customerId}?`)) {
+                                            const updated = [...workbook.deliverySchedule];
+                                            updated.splice(idx, 1);
+                                            updateSheetData('deliverySchedule', updated);
+                                          }
+                                        }}
+                                      >
+                                        ✕
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        <button 
+                          className="btn-add-row"
+                          onClick={() => {
+                            const newSch = {
+                              customerId: workbook.customers[0]?.id || '',
+                              Mon: 'Y', Tue: 'Y', Wed: 'Y', Thu: 'Y', Fri: 'Y', Sat: 'N', Sun: 'N'
+                            };
+                            updateSheetData('deliverySchedule', prev => [...(prev || []), newSch]);
+                          }}
+                        >
+                          ➕ Add Schedule Row
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SHEET 6: MEAL PREFERENCES (CORAL) */}
+                    {activeSheet === 'meal_preferences' && (
+                      <div>
+                        <div className="sheet-info-bar coral-info">
+                          <strong>Weekly Meal Customization</strong> — 21 columns (7 days × 3 meals). Dropdowns are pulled dynamically from the Settings sheet. Leave blank if no delivery scheduled.
+                        </div>
+                        <div className="workbook-table-wrapper" style={{ overflowX: 'auto' }}>
+                          <table className="workbook-table" style={{ tableLayout: 'auto', minWidth: '2200px' }}>
+                            <thead>
+                              <tr>
+                                <th style={{ width: '160px', position: 'sticky', left: 0, background: '#f8fafc', zIndex: 3, borderRight: '2px solid #cbd5e1' }}>Customer ID</th>
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                  <th key={day} colSpan="3" style={{ textAlign: 'center', borderRight: '2px solid #cbd5e1', background: '#f1f5f9' }}>
+                                    {day}
+                                  </th>
+                                ))}
+                                <th style={{ width: '60px', textAlign: 'center' }}></th>
+                              </tr>
+                              <tr>
+                                <th style={{ position: 'sticky', left: 0, background: '#f8fafc', zIndex: 3, borderRight: '2px solid #cbd5e1' }}></th>
+                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                  <React.Fragment key={day}>
+                                    <th style={{ fontStyle: 'italic', fontSize: '10px' }}>Breakfast</th>
+                                    <th style={{ fontStyle: 'italic', fontSize: '10px' }}>Lunch</th>
+                                    <th style={{ fontStyle: 'italic', fontSize: '10px', borderRight: '2px solid #cbd5e1' }}>Dinner</th>
+                                  </React.Fragment>
+                                ))}
+                                <th></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(workbook.mealPreferences || []).map((row, idx) => (
+                                <tr key={idx}>
+                                  <td className="row-cell" style={{ position: 'sticky', left: 0, background: '#fff', zIndex: 2, borderRight: '2px solid #e2e8f0' }}>
+                                    <select 
+                                      className="workbook-cell-select font-mono"
+                                      value={row.customerId || ''}
+                                      onChange={e => handleCellEdit('mealPreferences', idx, 'customerId', e.target.value)}
+                                    >
+                                      <option value="">— Select Cust —</option>
+                                      {(workbook.customers || []).map(c => (
+                                        <option key={c.id} value={c.id}>{c.id} ({c.name})</option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                    <React.Fragment key={day}>
+                                      {/* Breakfast Dropdown */}
+                                      <td className="row-cell">
+                                        <select
+                                          className="workbook-cell-select"
+                                          value={row[`${day}_Breakfast`] || ''}
+                                          onChange={e => handleCellEdit('mealPreferences', idx, `${day}_Breakfast`, e.target.value)}
+                                        >
+                                          <option value="">— Blank —</option>
+                                          {(workbook.settings?.breakfast || []).map(item => (
+                                            <option key={item} value={item}>{item}</option>
+                                          ))}
+                                        </select>
+                                      </td>
+                                      {/* Lunch Dropdown */}
+                                      <td className="row-cell">
+                                        <select
+                                          className="workbook-cell-select"
+                                          value={row[`${day}_Lunch`] || ''}
+                                          onChange={e => handleCellEdit('mealPreferences', idx, `${day}_Lunch`, e.target.value)}
+                                        >
+                                          <option value="">— Blank —</option>
+                                          {(workbook.settings?.lunch || []).map(item => (
+                                            <option key={item} value={item}>{item}</option>
+                                          ))}
+                                        </select>
+                                      </td>
+                                      {/* Dinner Dropdown */}
+                                      <td className="row-cell" style={{ borderRight: '2px solid #e2e8f0' }}>
+                                        <select
+                                          className="workbook-cell-select"
+                                          value={row[`${day}_Dinner`] || ''}
+                                          onChange={e => handleCellEdit('mealPreferences', idx, `${day}_Dinner`, e.target.value)}
+                                        >
+                                          <option value="">— Blank —</option>
+                                          {(workbook.settings?.dinner || []).map(item => (
+                                            <option key={item} value={item}>{item}</option>
+                                          ))}
+                                        </select>
+                                      </td>
+                                    </React.Fragment>
+                                  ))}
+                                  <td className="row-cell" style={{ textAlign: 'center' }}>
+                                    <button 
+                                      className="btn-delete"
+                                      onClick={() => {
+                                        if (window.confirm(`Delete meal preferences for customer ${row.customerId}?`)) {
+                                          const updated = [...workbook.mealPreferences];
+                                          updated.splice(idx, 1);
+                                          updateSheetData('mealPreferences', updated);
+                                        }
+                                      }}
+                                    >
+                                      ✕
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <button 
+                          className="btn-add-row"
+                          onClick={() => {
+                            const newPref = {
+                              customerId: workbook.customers[0]?.id || '',
+                              Mon_Breakfast: '', Mon_Lunch: '', Mon_Dinner: '',
+                              Tue_Breakfast: '', Tue_Lunch: '', Tue_Dinner: '',
+                              Wed_Breakfast: '', Wed_Lunch: '', Wed_Dinner: '',
+                              Thu_Breakfast: '', Thu_Lunch: '', Thu_Dinner: '',
+                              Fri_Breakfast: '', Fri_Lunch: '', Fri_Dinner: '',
+                              Sat_Breakfast: '', Sat_Lunch: '', Sat_Dinner: '',
+                              Sun_Breakfast: '', Sun_Lunch: '', Sun_Dinner: ''
+                            };
+                            updateSheetData('mealPreferences', prev => [...(prev || []), newPref]);
+                          }}
+                        >
+                          ➕ Add Preferences Row
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SHEET 7: SETTINGS (GRAY) */}
+                    {activeSheet === 'settings' && (
+                      <div>
+                        <div className="sheet-info-bar gray-info">
+                          <strong>Settings Menu Editor</strong> — Manage available dishes for breakfast, lunch, and dinner. All dropdowns across the Meal Preferences sheet update in real-time.
+                        </div>
+                        <div className="settings-columns-grid">
+                          {/* Breakfast Menu */}
+                          <div className="settings-col shadow-sm">
+                            <div className="settings-col-title">🌅 Breakfast Menu</div>
+                            <ul className="settings-item-list">
+                              {(workbook.settings?.breakfast || []).map((item, i) => (
+                                <li key={i}>
+                                  <span>{item}</span>
+                                  <button onClick={() => {
+                                    const updated = (workbook.settings.breakfast || []).filter((_, idx) => idx !== i);
+                                    updateSheetData('settings', prev => ({ ...prev, breakfast: updated }));
+                                  }}>✕</button>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="settings-col-add-box">
+                              <input 
+                                type="text" 
+                                placeholder="Add Breakfast dish" 
+                                value={newBreakfastItem}
+                                onChange={e => setNewBreakfastItem(e.target.value)}
+                              />
+                              <button onClick={() => {
+                                if (newBreakfastItem.trim()) {
+                                  const updated = [...(workbook.settings.breakfast || []), newBreakfastItem.trim()];
+                                  updateSheetData('settings', prev => ({ ...prev, breakfast: updated }));
+                                  setNewBreakfastItem('');
+                                }
+                              }}>Add</button>
+                            </div>
+                          </div>
+
+                          {/* Lunch Menu */}
+                          <div className="settings-col shadow-sm">
+                            <div className="settings-col-title">🥗 Lunch Menu</div>
+                            <ul className="settings-item-list">
+                              {(workbook.settings?.lunch || []).map((item, i) => (
+                                <li key={i}>
+                                  <span>{item}</span>
+                                  <button onClick={() => {
+                                    const updated = (workbook.settings.lunch || []).filter((_, idx) => idx !== i);
+                                    updateSheetData('settings', prev => ({ ...prev, lunch: updated }));
+                                  }}>✕</button>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="settings-col-add-box">
+                              <input 
+                                type="text" 
+                                placeholder="Add Lunch dish" 
+                                value={newLunchItem}
+                                onChange={e => setNewLunchItem(e.target.value)}
+                              />
+                              <button onClick={() => {
+                                if (newLunchItem.trim()) {
+                                  const updated = [...(workbook.settings.lunch || []), newLunchItem.trim()];
+                                  updateSheetData('settings', prev => ({ ...prev, lunch: updated }));
+                                  setNewLunchItem('');
+                                }
+                              }}>Add</button>
+                            </div>
+                          </div>
+
+                          {/* Dinner Menu */}
+                          <div className="settings-col shadow-sm">
+                            <div className="settings-col-title">🍛 Dinner Menu</div>
+                            <ul className="settings-item-list">
+                              {(workbook.settings?.dinner || []).map((item, i) => (
+                                <li key={i}>
+                                  <span>{item}</span>
+                                  <button onClick={() => {
+                                    const updated = (workbook.settings.dinner || []).filter((_, idx) => idx !== i);
+                                    updateSheetData('settings', prev => ({ ...prev, dinner: updated }));
+                                  }}>✕</button>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="settings-col-add-box">
+                              <input 
+                                type="text" 
+                                placeholder="Add Dinner dish" 
+                                value={newDinnerItem}
+                                onChange={e => setNewDinnerItem(e.target.value)}
+                              />
+                              <button onClick={() => {
+                                if (newDinnerItem.trim()) {
+                                  const updated = [...(workbook.settings.dinner || []), newDinnerItem.trim()];
+                                  updateSheetData('settings', prev => ({ ...prev, dinner: updated }));
+                                  setNewDinnerItem('');
+                                }
+                              }}>Add</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-
-              <div className="excel-grid-container">
-                <table className="excel-grid-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '50px', textAlign: 'center' }}>Row</th>
-                      <th>Product Name</th>
-                      <th style={{ width: '120px' }}>Price (₹)</th>
-                      <th style={{ width: '150px' }}>Category</th>
-                      <th style={{ width: '110px' }}>Calories (kcal)</th>
-                      <th style={{ width: '100px' }}>Protein (g)</th>
-                      <th style={{ width: '130px' }}>Diet Type</th>
-                      <th style={{ width: '140px' }}>Stock Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.isArray(gridData) && gridData.map((row, idx) => {
-                      const isModified = modifiedRowIds.has(row.tempId);
-                      return (
-                        <tr key={row.tempId} className={isModified ? 'modified-row' : ''}>
-                          <td className="excel-row-num" style={{ textAlign: 'center', background: '#f8fafc', fontWeight: 600, color: '#64748b' }}>
-                            {idx + 1}
-                          </td>
-                          <td>
-                            <input 
-                              type="text" 
-                              className="excel-cell-input text-left" 
-                              placeholder="Product Name"
-                              value={row.name || ''} 
-                              onChange={e => handleGridCellChange(row.tempId, 'name', e.target.value)}
-                            />
-                          </td>
-                          <td>
-                            <input 
-                              type="number" 
-                              className="excel-cell-input text-right font-mono" 
-                              placeholder="Price"
-                              value={row.price === undefined || row.price === null ? '' : row.price} 
-                              onChange={e => handleGridCellChange(row.tempId, 'price', e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </td>
-                          <td>
-                            <select 
-                              className="excel-cell-select" 
-                              value={row.category || ''} 
-                              onChange={e => handleGridCellChange(row.tempId, 'category', e.target.value)}
-                            >
-                              <option value="">— Select Category —</option>
-                              <option value="bowls">🥗 Bowls</option>
-                              <option value="smoothies">🥤 Smoothies</option>
-                              <option value="combos">🍱 Combos</option>
-                              <option value="breakfast">🌅 Breakfast</option>
-                              <option value="eggitarian">🥚 Eggitarian</option>
-                            </select>
-                          </td>
-                          <td>
-                            <input 
-                              type="number" 
-                              className="excel-cell-input text-right font-mono" 
-                              placeholder=""
-                              value={row.calories === undefined || row.calories === null ? '' : row.calories} 
-                              onChange={e => handleGridCellChange(row.tempId, 'calories', e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </td>
-                          <td>
-                            <input 
-                              type="number" 
-                              className="excel-cell-input text-right font-mono" 
-                              placeholder=""
-                              value={row.protein === undefined || row.protein === null ? '' : row.protein} 
-                              onChange={e => handleGridCellChange(row.tempId, 'protein', e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </td>
-                          <td>
-                            <select 
-                              className="excel-cell-select" 
-                              value={row.isVeg === '' ? '' : (row.isVeg ? 'veg' : 'nonveg')} 
-                              onChange={e => handleGridCellChange(row.tempId, 'isVeg', e.target.value === '' ? '' : e.target.value === 'veg')}
-                            >
-                              <option value="">— Select Diet —</option>
-                              <option value="veg">🟢 Veg</option>
-                              <option value="nonveg">🔴 Non-Veg</option>
-                            </select>
-                          </td>
-                          <td>
-                            <select 
-                              className="excel-cell-select" 
-                              value={row.isAvailable === '' ? '' : (row.isAvailable ? 'available' : 'unavailable')} 
-                              onChange={e => handleGridCellChange(row.tempId, 'isAvailable', e.target.value === '' ? '' : e.target.value === 'available')}
-                            >
-                              <option value="">— Select Stock —</option>
-                              <option value="available">📦 In Stock</option>
-                              <option value="unavailable">❌ Out of Stock</option>
-                            </select>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
-                <button 
-                  className="btn-outline" 
-                  onClick={handleAddGridRow}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, padding: '8px 16px', borderRadius: '10px' }}
-                >
-                  ➕ Add New Row
-                </button>
-              </div>
             </div>
           )}
+
         </main>
       </div>
 

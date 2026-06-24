@@ -194,9 +194,6 @@ export default function Home() {
               <h2 className="section-title">Today's Fresh Menu</h2>
               <p className="section-subtitle">Handcrafted with love. Powered by nutrition.</p>
             </div>
-            <Link to="/menu" className="btn-outline">
-              View All <ChevronRight size={16} />
-            </Link>
           </div>
           <div className="featured-grid">
             {productsLoading
@@ -212,6 +209,11 @@ export default function Home() {
                 ))
               : featured.map(item => <FeaturedCard key={item.id} item={item} />)
             }
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '35px' }}>
+            <Link to="/menu" className="btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 24px', borderRadius: '30px' }}>
+              View All <ChevronRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
