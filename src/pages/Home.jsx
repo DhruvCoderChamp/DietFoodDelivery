@@ -309,6 +309,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Brand Story / SEO Section ── */}
+      <section className="section brand-seo-section" style={{ background: 'rgba(39, 174, 96, 0.03)', borderTop: '1px solid rgba(39, 174, 96, 0.06)', borderBottom: '1px solid rgba(39, 174, 96, 0.06)', padding: '50px 0', textAlign: 'center' }}>
+        <div className="container" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 20px' }}>
+          <h2 className="section-title" style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-dark)', marginBottom: '16px' }}>
+            Bangalore's Premium Healthy Meal Delivery
+          </h2>
+          <p style={{ fontSize: '16px', color: '#4B5563', lineHeight: '1.8', margin: '0 auto', fontWeight: '500', maxWidth: '720px' }}>
+            Healthy breakfast, lunch, and dinner delivered fresh across Whitefield, Bangalore. High-protein meals, salads, and fitness-focused food delivered in 30 minutes. Open daily from 6 AM to 10 PM.
+          </p>
+        </div>
+      </section>
+
       {/* ── CTA Banner ── */}
       <section className="cta-section">
         <div className="container cta-inner">
