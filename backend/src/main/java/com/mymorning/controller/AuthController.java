@@ -5,6 +5,7 @@ import com.mymorning.config.JwtUtils;
 import com.mymorning.model.User;
 import com.mymorning.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +24,11 @@ public class  AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    private static final String ADMIN_CHECK_EMAIL = "mymorningblr@gmail.com";
-    private static final String ADMIN_CHECK_PASS = "My123mor#@i123";
+    @Value("${admin.email:mymorningblr@gmail.com}")
+    private String adminCheckEmail;
+
+    @Value("${admin.password:My123mor#@i123}")
+    private String adminCheckPass;
 
     /**
      * Admin login using credentials.
@@ -36,7 +40,7 @@ public class  AuthController {
         String email = credentials.get("email") != null ? credentials.get("email").trim() : null;
         String password = credentials.get("password") != null ? credentials.get("password").trim() : null;
 
-        if (ADMIN_CHECK_EMAIL.equals(email) && ADMIN_CHECK_PASS.equals(password)) {
+        if (adminCheckEmail.equals(email) && adminCheckPass.equals(password)) {
             // Mock Admin User for token generation
             User admin = User.builder()
                     .phone("ADMIN_SECURE")
@@ -45,7 +49,7 @@ public class  AuthController {
                     .id(0L)
                     .build();
 
-            String token = jwtUtils.generateToken(ADMIN_CHECK_EMAIL, "ROLE_ADMIN", 0L);
+            String token = jwtUtils.generateToken(adminCheckEmail, "ROLE_ADMIN", 0L);
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
