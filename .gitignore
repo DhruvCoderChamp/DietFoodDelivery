@@ -35,3 +35,8 @@ build/
 # Maven binaries
 maven/
 maven.zip
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example

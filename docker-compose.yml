@@ -8,12 +8,11 @@ services:
     container_name: mm_backend
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-lucky-king-a12dzwvd.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-      SPRING_DATASOURCE_USERNAME: neondb_owner
-      SPRING_DATASOURCE_PASSWORD: npg_Rj0VLTf3SznF
-      DB_URL: jdbc:postgresql://ep-lucky-king-a12dzwvd.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-      DB_USERNAME: neondb_owner
-      DB_PASSWORD: npg_Rj0VLTf3SznF
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "8080:8080"
     networks:
