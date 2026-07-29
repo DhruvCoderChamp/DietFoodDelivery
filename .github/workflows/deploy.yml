@@ -62,21 +62,62 @@ jobs:
       - frontend-checks
       - backend-checks
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    env:
+      HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
+      HETZNER_USERNAME: ${{ secrets.HETZNER_USERNAME }}
+      HETZNER_SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+      PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
 
     steps:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/hetzner_deploy_key
+          printf '%s\n' "$HETZNER_SSH_KEY" > ~/.ssh/hetzner_deploy_key
           chmod 600 ~/.ssh/hetzner_deploy_key
-          ssh-keyscan -H "${{ secrets.HETZNER_HOST }}" >> ~/.ssh/known_hosts
+
+          HOST="$(printf '%s' "$HETZNER_HOST" | tr -d '\r\n[:space:]')"
+          HOST="${HOST#ssh://}"
+          HOST="${HOST#http://}"
+          HOST="${HOST#https://}"
+          HOST_WITHOUT_USER="${HOST#*@}"
+          SSH_HOST="$HOST_WITHOUT_USER"
+          SSH_PORT="22"
+
+          if [[ "$HOST_WITHOUT_USER" =~ ^(.+):([0-9]+)$ ]]; then
+            SSH_HOST="${BASH_REMATCH[1]}"
+            SSH_PORT="${BASH_REMATCH[2]}"
+          fi
+
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy on Hetzner
         run: |
-          ssh -i ~/.ssh/hetzner_deploy_key \
-            "${{ secrets.HETZNER_USERNAME }}@${{ secrets.HETZNER_HOST }}" \
+          USERNAME="$(printf '%s' "$HETZNER_USERNAME" | tr -d '\r\n[:space:]')"
+          HOST="$(printf '%s' "$HETZNER_HOST" | tr -d '\r\n[:space:]')"
+          HOST="${HOST#ssh://}"
+          HOST="${HOST#http://}"
+          HOST="${HOST#https://}"
+
+          if [[ "$HOST" == *@* ]]; then
+            SSH_USER="${HOST%@*}"
+            HOST_WITHOUT_USER="${HOST#*@}"
+          else
+            SSH_USER="$USERNAME"
+            HOST_WITHOUT_USER="$HOST"
+          fi
+
+          SSH_HOST="$HOST_WITHOUT_USER"
+          SSH_PORT="22"
+          if [[ "$HOST_WITHOUT_USER" =~ ^(.+):([0-9]+)$ ]]; then
+            SSH_HOST="${BASH_REMATCH[1]}"
+            SSH_PORT="${BASH_REMATCH[2]}"
+          fi
+
+          echo "Deploying to $SSH_USER@$SSH_HOST:$SSH_PORT"
+          ssh -p "$SSH_PORT" -i ~/.ssh/hetzner_deploy_key \
+            "$SSH_USER@$SSH_HOST" \
             "set -e
-             cd '${{ secrets.PROJECT_PATH }}'
+             cd '$PROJECT_PATH'
              git pull --ff-only origin master
              docker compose up -d --build
              docker image prune -f"
