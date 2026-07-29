@@ -116,8 +116,39 @@ jobs:
           echo "Deploying to $SSH_USER@$SSH_HOST:$SSH_PORT"
           ssh -p "$SSH_PORT" -i ~/.ssh/hetzner_deploy_key \
             "$SSH_USER@$SSH_HOST" \
-            "set -e
-             cd '$PROJECT_PATH'
-             git pull --ff-only origin master
-             docker compose up -d --build
-             docker image prune -f"
+            "PROJECT_PATH='$PROJECT_PATH' bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          cd "$PROJECT_PATH"
+
+          BACKUP_DIR="$(mktemp -d)"
+          for ENV_FILE in .env .env.production; do
+            if [ -f "$ENV_FILE" ]; then
+              cp "$ENV_FILE" "$BACKUP_DIR/$ENV_FILE"
+            fi
+          done
+
+          STASH_COUNT_BEFORE="$(git stash list | wc -l)"
+          git stash push --include-untracked --message "ci-env-backup" -- .env .env.production || true
+          STASH_COUNT_AFTER="$(git stash list | wc -l)"
+          git pull --ff-only origin master
+
+          for ENV_FILE in .env .env.production; do
+            if [ -f "$BACKUP_DIR/$ENV_FILE" ]; then
+              cp "$BACKUP_DIR/$ENV_FILE" "$ENV_FILE"
+            fi
+          done
+
+          if [ -f .env.production ]; then
+            docker compose --env-file .env.production up -d --build
+          else
+            docker compose up -d --build
+          fi
+
+          if [ "$STASH_COUNT_AFTER" -gt "$STASH_COUNT_BEFORE" ]; then
+            git stash drop stash@{0} || true
+          fi
+
+          docker image prune -f
+          rm -rf "$BACKUP_DIR"
+          REMOTE_SCRIPT
