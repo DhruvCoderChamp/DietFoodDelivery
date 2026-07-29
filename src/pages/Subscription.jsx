@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, Plus, Search, Send, X } from 'lucide-react';
+import { Plus, Search, Send, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { deliveryAreas, menuItems } from '../data/menuData';
-import { groupProductsByCategory, selectedCountForCategory, normalizeCategory, isProductInCategory } from '../utils/categories';
+import { normalizeCategory, isProductInCategory } from '../utils/categories';
 import { buildSubscriptionPayload } from '../utils/subscriptions';
 import './Subscription.css';
 

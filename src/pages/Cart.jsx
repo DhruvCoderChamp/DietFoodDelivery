@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import './Cart.css';
 
 export default function Cart() {
-  const { items, totalItems, totalPrice, updateQty, removeItem, clearCart } = useCart();
+  const { items, totalItems, totalPrice, updateQty, removeItem } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 

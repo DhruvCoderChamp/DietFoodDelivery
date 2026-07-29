@@ -77,8 +77,6 @@ function AppContent() {
   );
 }
 
-const hidenavbar = false; // will be computed per render in AppContent
-
 export default function App() {
   return (
     <BrowserRouter>

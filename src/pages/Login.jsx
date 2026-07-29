@@ -51,7 +51,11 @@ export default function Login() {
     try {
       // More thorough cleanup to fix SESSION_EXPIRED
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch(e) {}
+        try {
+          window.recaptchaVerifier.clear();
+        } catch {
+          window.recaptchaVerifier = null;
+        }
         window.recaptchaVerifier = null;
       }
       
@@ -62,7 +66,7 @@ export default function Login() {
       
       const appVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
-        callback: (response) => {},
+        callback: () => {},
         'expired-callback': () => {
           setError('reCAPTCHA expired. Please try again.');
           setLoading(false);
@@ -144,7 +148,7 @@ export default function Login() {
         setError(errorData.message || 'Server is busy. Please try again in 5 seconds.');
       }
       setLoading(false);
-    } catch(err) {
+    } catch {
       setError('Connection lost. Please check your data/wifi and try again.');
       setLoading(false);
     }
@@ -171,7 +175,7 @@ export default function Login() {
         const errData = await res.json().catch(() => ({}));
         setError(errData.message || 'Invalid admin credentials. Check your username and password.');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to server. Please try again.');
     } finally {
       setLoading(false);

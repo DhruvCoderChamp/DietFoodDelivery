@@ -1,12 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Lock, Eye, CheckCircle, Database } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import './Legal.css';
 
 export default function Privacy() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
   const handleMailto = (e) => {
     // Prevent default and use a robust trigger
     e.preventDefault();

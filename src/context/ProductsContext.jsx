@@ -10,7 +10,9 @@ const getStoredCache = () => {
   try {
     const data = localStorage.getItem(CACHE_KEY);
     return data ? JSON.parse(data) : null;
-  } catch (err) { return null; }
+  } catch {
+    return null;
+  }
 };
 
 let _cache = getStoredCache();

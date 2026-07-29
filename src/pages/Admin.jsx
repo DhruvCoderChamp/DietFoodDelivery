@@ -1219,7 +1219,7 @@ export default function Admin() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {todayOrders.map((row, idx) => (
+                                {todayOrders.map(row => (
                                   <tr key={row.customerId} className={row.isDispatched ? 'dispatched-row' : ''}>
                                     <td className="row-cell font-mono">{row.customerId}</td>
                                     <td className="row-cell font-bold">{row.name}</td>

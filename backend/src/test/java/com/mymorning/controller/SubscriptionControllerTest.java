@@ -2,6 +2,7 @@ package com.mymorning.controller;
 
 import com.mymorning.model.Subscription;
 import com.mymorning.repository.SubscriptionRepository;
+import com.mymorning.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,9 @@ class SubscriptionControllerTest {
 
     @Mock
     private SubscriptionRepository repository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private SubscriptionController controller;
@@ -45,6 +49,7 @@ class SubscriptionControllerTest {
     void savesLocationFieldsForNewSubscription() {
         when(repository.findByUserId(7L)).thenReturn(Optional.empty());
         when(repository.save(any(Subscription.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.findById(7L)).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = controller.saveSubscription(incoming);
 
@@ -60,6 +65,7 @@ class SubscriptionControllerTest {
         existing.setUserId(7L);
         when(repository.findByUserId(7L)).thenReturn(Optional.of(existing));
         when(repository.save(existing)).thenReturn(existing);
+        when(userRepository.findById(7L)).thenReturn(Optional.empty());
 
         controller.saveSubscription(incoming);
 

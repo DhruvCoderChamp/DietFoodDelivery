@@ -181,12 +181,14 @@ export default function Checkout() {
               }
             }
           }
-        } catch (err) { }
+        } catch (err) {
+          console.error('Failed to resolve detected location', err);
+        }
 
         setForm(f => ({ ...f, address: addressText }));
         setLocating(false);
       },
-      (err) => {
+      () => {
         alert("Failed to get location! Please explicitly allow location permission in your browser popup.");
         setLocating(false);
       },

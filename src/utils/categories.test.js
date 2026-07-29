@@ -20,13 +20,23 @@ test('groups only available products in the approved order', () => {
     { id: 3, name: 'Hidden', category: 'Breakfast', isAvailable: false },
   ]);
 
-  assert.deepEqual(groups.map(group => group.id), ['bowls', 'combos']);
-  assert.deepEqual(groups[0].items.map(item => item.name), ['Bowl']);
+  assert.deepEqual(groups.map(group => group.id), ['combos', 'bowls']);
+  assert.deepEqual(groups.find(group => group.id === 'bowls').items.map(item => item.name), ['Bowl']);
   assert.deepEqual(CATEGORY_DEFINITIONS.map(category => category.id), [
+    'veg',
+    'non-veg',
+    'eggs',
+    'breakfast',
+    'lunch',
+    'dinner',
+    'juices',
+    'protein-shakes',
+    'oatmeal-bowls',
+    'salad-bowls',
+    'rice-bowls',
+    'combos',
     'bowls',
     'smoothies',
-    'combos',
-    'breakfast',
     'eggitarian',
   ]);
 });

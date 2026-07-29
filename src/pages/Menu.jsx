@@ -1,9 +1,8 @@
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, ShoppingCart, Star, X } from 'lucide-react';
+import { Search, ShoppingCart, Star, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductsContext';
-import { categories } from '../data/menuData';
 import { normalizeCategory } from '../utils/categories';
 import logoImg from '../assets/logo.png';
 import './Menu.css';

@@ -1,12 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CreditCard, RefreshCw, XCircle, Clock } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import './Legal.css';
 
 export default function Refund() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
   return (
     <div className="legal-page page-enter">
       <div className="legal-header">
