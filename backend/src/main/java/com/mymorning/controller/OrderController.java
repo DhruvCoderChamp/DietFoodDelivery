@@ -53,7 +53,7 @@ public class OrderController {
         return orderRepository.findById(id).map(order -> {
             order.setStatus(statusUpdate.get("status"));
             return orderRepository.save(order);
-        }).orElseThrow(() -> new RuntimeException("Order not found"));
+        }).orElseThrow(() -> new RuntimeException("Order was not found"));
     }
 
     @DeleteMapping("/api/admin/orders/all")
