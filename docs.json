@@ -1,66 +1,30 @@
 {
   "name": "Diet Food Delivery",
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "favicon": "/favicon.svg",
+  "theme": "mint",
   "colors": {
     "primary": "#0D9488",
     "light": "#07C983",
-    "dark": "#0D9488",
-    "ultraLight": "#F0FDFA",
-    "ultraDark": "#051C15",
-    "background": {
-      "light": "#FFFFFF",
-      "dark": "#0F172A"
-    }
+    "dark": "#0D9488"
   },
-  "topbarLinks": [
-    {
-      "name": "Support",
-      "url": "mailto:support@dietfooddelivery.com"
-    }
-  ],
-  "anchors": [
-    {
-      "name": "Documentation",
-      "icon": "book-open",
-      "url": "docs"
-    },
-    {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://join.slack.com"
-    },
-    {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://blog.dietfooddelivery.com"
-    }
-  ],
-  "navigation": [
-    {
-      "group": "Get Started",
-      "pages": [
-        "introduction",
-        "quickstart",
-        "development"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/authentication",
-        "api-reference/errors"
-      ]
-    }
-  ],
-  "footerSocials": {
-    "twitter": "https://twitter.com/dietfooddelivery",
-    "github": "https://github.com/DhruvCoderChamp/DietFoodDelivery",
-    "linkedin": "https://linkedin.com/company/dietfooddelivery"
-  },
-  "theme": "mint"
+  "sidebar": {
+    "default": "Get Started",
+    "items": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "development"
+        ]
+      },
+      {
+        "group": "API Documentation",
+        "pages": [
+          "api-reference/introduction",
+          "api-reference/authentication",
+          "api-reference/errors"
+        ]
+      }
+    ]
+  }
 }
