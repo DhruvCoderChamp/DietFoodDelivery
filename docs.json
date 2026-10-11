@@ -1,1 +1,66 @@
-{ "repository": { "name": "DietFoodDelivery", "owner": "DhruvCoderChamp", "repoId": "1194701227", "languageComposition": [ { "name": "JavaScript", "percent": 58 }, { "name": "CSS", "percent": 25.3 }, { "name": "Java", "percent": 14.9 }, { "name": "HTML", "percent": 0.7 }, { "name": "Shell", "percent": 0.7 }, { "name": "PowerShell", "percent": 0.2 }, { "name": "Dockerfile", "percent": 0.2 } ] } }
+{
+  "name": "Diet Food Delivery",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9488",
+    "light": "#07C983",
+    "dark": "#0D9488",
+    "ultraLight": "#F0FDFA",
+    "ultraDark": "#051C15",
+    "background": {
+      "light": "#FFFFFF",
+      "dark": "#0F172A"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@dietfooddelivery.com"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open",
+      "url": "docs"
+    },
+    {
+      "name": "Community",
+      "icon": "slack",
+      "url": "https://join.slack.com"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://blog.dietfooddelivery.com"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "development"
+      ]
+    },
+    {
+      "group": "API Documentation",
+      "pages": [
+        "api-reference/introduction",
+        "api-reference/authentication",
+        "api-reference/errors"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/dietfooddelivery",
+    "github": "https://github.com/DhruvCoderChamp/DietFoodDelivery",
+    "linkedin": "https://linkedin.com/company/dietfooddelivery"
+  },
+  "theme": "mint"
+}
