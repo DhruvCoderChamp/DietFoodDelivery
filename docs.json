@@ -38,17 +38,17 @@
       {
         "group": "Getting Started",
         "pages": [
-          "introduction",
-          "quickstart",
-          "development"
+          "docs/introduction",
+          "docs/quickstart",
+          "docs/development"
         ]
       },
       {
         "group": "API Documentation",
         "pages": [
-          "api-reference/introduction",
-          "api-reference/authentication",
-          "api-reference/errors"
+          "docs/api-reference/introduction",
+          "docs/api-reference/authentication",
+          "docs/api-reference/errors"
         ]
       }
     ]
