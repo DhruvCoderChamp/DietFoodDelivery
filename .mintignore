@@ -1,0 +1,5 @@
+# Ignore files
+.DS_Store
+.git
+.gitignore
+node_modules
