@@ -1,16 +1,15 @@
 {
-  "name": "Diet Food Delivery",
+  "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
+  "name": "Diet Food Delivery",
+  "colors": {
+    "primary": "#0D9488"
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
   "favicon": "/favicon.svg",
-  "colors": {
-    "primary": "#0D9488",
-    "light": "#07C983",
-    "dark": "#0D9488"
-  },
   "topbarLinks": [
     {
       "name": "Support",
@@ -35,8 +34,7 @@
     }
   ],
   "navigation": {
-    "default": "Getting Started",
-    "items": [
+    "groups": [
       {
         "group": "Getting Started",
         "pages": [
