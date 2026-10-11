@@ -34,24 +34,27 @@
       "url": "https://blog.dietfooddelivery.com"
     }
   ],
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "introduction",
-        "quickstart",
-        "development"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/authentication",
-        "api-reference/errors"
-      ]
-    }
-  ],
+  "navigation": {
+    "default": "Getting Started",
+    "items": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "development"
+        ]
+      },
+      {
+        "group": "API Documentation",
+        "pages": [
+          "api-reference/introduction",
+          "api-reference/authentication",
+          "api-reference/errors"
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "twitter": "https://twitter.com/dietfooddelivery",
     "github": "https://github.com/DhruvCoderChamp/DietFoodDelivery",
