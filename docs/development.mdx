@@ -1,0 +1,90 @@
+---
+title: "Development"
+description: "Development guide and best practices"
+---
+
+# Development Guide
+
+This guide covers development setup, project structure, and best practices for contributing to Diet Food Delivery.
+
+## Project Structure
+
+```
+DietFoodDelivery/
+├── src/
+│   ├── components/      # Reusable React components
+│   ├── pages/          # Page components
+│   ├── App.jsx         # Main app component
+│   └── main.jsx        # Entry point
+├── public/             # Static assets
+├── backend/            # Backend API server
+├── docs/               # Documentation
+├── Dockerfile          # Container configuration
+├── docker-compose.yml  # Multi-container setup
+└── package.json        # Project dependencies
+```
+
+## Development Commands
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Run Linter
+
+```bash
+npm run lint
+```
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+## Code Style
+
+- Follow ESLint rules configured in `eslint.config.js`
+- Use functional components with hooks
+- Keep components small and focused
+- Write meaningful commit messages
+
+## Testing
+
+Tests are located in `src/utils/*.test.js` and can be run with:
+
+```bash
+npm test
+```
+
+## Deployment
+
+The application can be deployed using Docker:
+
+```bash
+docker build -t diet-food-delivery .
+docker run -p 8080:8080 diet-food-delivery
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run linter and tests
+4. Submit a pull request
+
+For more details, see the [Architecture Documentation](./docs/project_documentation.md)

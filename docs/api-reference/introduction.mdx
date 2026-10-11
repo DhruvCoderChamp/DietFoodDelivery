@@ -1,0 +1,65 @@
+---
+title: "API Reference"
+description: "Diet Food Delivery API Overview"
+---
+
+# API Reference
+
+## Base URL
+
+```
+https://api.dietfooddelivery.com/v1
+```
+
+## Authentication
+
+All API requests require authentication using a Bearer token obtained from Firebase Authentication.
+
+## Rate Limiting
+
+API requests are rate-limited to 1000 requests per hour per API key.
+
+## Response Format
+
+All responses are returned in JSON format:
+
+```json
+{
+  "status": "success",
+  "data": { },
+  "message": "Request successful"
+}
+```
+
+## Error Responses
+
+Error responses include an error code and message:
+
+```json
+{
+  "status": "error",
+  "error_code": "INVALID_REQUEST",
+  "message": "Invalid request parameters"
+}
+```
+
+## Available Endpoints
+
+### Authentication
+- POST `/auth/login` - User login
+- POST `/auth/register` - User registration
+- POST `/auth/logout` - User logout
+
+### Orders
+- GET `/orders` - List user orders
+- POST `/orders` - Create new order
+- GET `/orders/{id}` - Get order details
+- PUT `/orders/{id}` - Update order
+- DELETE `/orders/{id}` - Cancel order
+
+### Restaurants
+- GET `/restaurants` - List all restaurants
+- GET `/restaurants/{id}` - Get restaurant details
+- GET `/restaurants/{id}/menu` - Get restaurant menu
+
+See the detailed sections for more information about each endpoint.

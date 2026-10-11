@@ -1,0 +1,83 @@
+---
+title: "Error Handling"
+description: "Error codes and troubleshooting"
+---
+
+# Error Handling
+
+Understanding error responses helps you debug issues and improve your integration.
+
+## Error Response Format
+
+All error responses follow this format:
+
+```json
+{
+  "status": "error",
+  "error_code": "ERROR_CODE",
+  "message": "Human-readable error message",
+  "details": { }
+}
+```
+
+## HTTP Status Codes
+
+| Status | Meaning | Example |
+|--------|---------|----------|
+| 200 | OK | Request successful |
+| 400 | Bad Request | Invalid parameters |
+| 401 | Unauthorized | Missing or invalid token |
+| 403 | Forbidden | Insufficient permissions |
+| 404 | Not Found | Resource doesn't exist |
+| 429 | Too Many Requests | Rate limit exceeded |
+| 500 | Server Error | Internal server error |
+
+## Common Error Codes
+
+### Authentication Errors
+
+- `INVALID_CREDENTIALS` - Email or password is incorrect
+- `INVALID_TOKEN` - Token is invalid or expired
+- `UNAUTHORIZED` - Authentication required
+- `USER_EXISTS` - User already registered
+
+### Validation Errors
+
+- `INVALID_REQUEST` - Request data is invalid
+- `MISSING_FIELD` - Required field is missing
+- `INVALID_FORMAT` - Field format is invalid
+
+### Resource Errors
+
+- `NOT_FOUND` - Resource doesn't exist
+- `CONFLICT` - Resource already exists
+- `GONE` - Resource has been deleted
+
+### Rate Limiting
+
+- `RATE_LIMIT_EXCEEDED` - Too many requests
+- `QUOTA_EXCEEDED` - Monthly quota exceeded
+
+## Debugging
+
+When encountering errors:
+
+1. Check the HTTP status code
+2. Read the error message
+3. Review the error code
+4. Check `details` for additional information
+5. Consult the relevant API section
+
+## Example Error Response
+
+```json
+{
+  "status": "error",
+  "error_code": "INVALID_REQUEST",
+  "message": "Email field is required",
+  "details": {
+    "field": "email",
+    "reason": "missing_required_field"
+  }
+}
+```

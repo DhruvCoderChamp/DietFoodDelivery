@@ -1,0 +1,100 @@
+---
+title: "Authentication"
+description: "Authentication endpoints and methods"
+---
+
+# Authentication
+
+Diet Food Delivery uses Firebase Authentication for secure user management.
+
+## Login
+
+```bash
+POST /auth/login
+```
+
+### Request Body
+
+```json
+{
+  "email": "user@example.com",
+  "password": "secure_password"
+}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "uid": "user_id",
+    "email": "user@example.com",
+    "token": "firebase_auth_token"
+  }
+}
+```
+
+## Register
+
+```bash
+POST /auth/register
+```
+
+### Request Body
+
+```json
+{
+  "email": "newuser@example.com",
+  "password": "secure_password",
+  "name": "User Name"
+}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "uid": "new_user_id",
+    "email": "newuser@example.com"
+  }
+}
+```
+
+## Logout
+
+```bash
+POST /auth/logout
+```
+
+Requires authentication token in header:
+
+```
+Authorization: Bearer {token}
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "message": "Logged out successfully"
+}
+```
+
+## Token Refresh
+
+Tokens automatically refresh when expired. To manually refresh:
+
+```bash
+POST /auth/refresh
+```
+
+## Error Codes
+
+- `INVALID_CREDENTIALS` - Email or password is incorrect
+- `USER_EXISTS` - Email already registered
+- `INVALID_TOKEN` - Authentication token is invalid or expired
+- `UNAUTHORIZED` - Request requires authentication
