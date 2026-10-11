@@ -1,8 +1,19 @@
 # Diet Food Delivery - Assistant
 
-This project uses Mintlify documentation.
+Welcome to the Diet Food Delivery documentation assistant. This project provides comprehensive guides and API documentation for the Diet Food Delivery platform.
 
-## Getting Started
-- Install dependencies
-- Run the docs locally
-- Use the API reference
+## Documentation Sections
+
+### Getting Started
+- Introduction to Diet Food Delivery
+- Quick Start Guide
+- Development Setup
+
+### API Reference
+- Authentication
+- Endpoints
+- Error Handling
+
+## Support
+
+For questions or issues, please contact us at support@dietfooddelivery.com
